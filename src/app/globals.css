@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --dark-purple: #460C58;
+  --gold: #FBE6A6;
+  --offwhite: #F8F4F0;
+  --hover-gold: #CFA94A;
+}
+
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--dark-purple);
+  color: var(--offwhite);
+  font-family: 'Inter', sans-serif;
+  font-size: 1.4rem;
+}
+
+h1 {
+  font-family: 'Great Vibes', cursive;
+  font-size: 7rem;
+  color: var(--gold);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-family: 'Great Vibes', cursive;
+  font-size: 3rem;
+  color: var(--gold);
+}
+
+p {
+  font-size: 1.4rem;
+  margin: 1.5rem 0 2rem 0;
+  line-height: 1.6;
+}
+
+button {
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+}
+
+input, select, textarea {
+  font-family: 'Inter', sans-serif;
+  margin-top: 10;
+  margin-bottom: 10;
+  margin-left: 7;
+  margin-right: 7;
+}
+
+.icon {
+  margin: 2rem 0;
+}
+
+.icon svg {
+  width: 120px;
+  height: 120px;
+  stroke: var(--gold);
+  fill: none;
+  stroke-width: 2;
+}
