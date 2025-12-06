@@ -10,7 +10,6 @@ export default function ProfilePage() {
   const { groups } = useGroups();
   const [formData, setFormData] = useState({
     username: '',
-    city: '',
   });
   const [message, setMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -19,7 +18,6 @@ export default function ProfilePage() {
     if (profile) {
       setFormData({
         username: profile.username || '',
-        city: profile.city || '',
       });
     }
   }, [profile]);
@@ -71,14 +69,6 @@ export default function ProfilePage() {
             onChange={handleChange}
           />
 
-          <Input
-            label={profileContent.labels.city}
-            name="city"
-            placeholder={profileContent.placeholders.city}
-            value={formData.city}
-            onChange={handleChange}
-          />
-
           {(message || error) && (
             <p className={`text-center text-sm mb-6 ${message.includes('success') ? 'text-green-400' : 'text-red-400'}`}>
               {message || error}
@@ -102,9 +92,9 @@ export default function ProfilePage() {
             </p>
             <div className="space-y-3">
               {groups.map(group => (
-                <Card key={group.id}>
-                  <h3 className="text-[#FBE6A6] font-bold text-lg">{group.name}</h3>
-                  <p className="text-[#F8F4F0] text-sm">{group.city || 'No city specified'}</p>
+                <Card key={group.groupid}>
+                  <h3 className="text-[#FBE6A6] font-bold text-lg">{group.groupname}</h3>
+                  <p className="text-[#F8F4F0] text-sm">{group.groupcity || 'No city specified'}</p>
                   <p className="text-[#F8F4F0] text-xs mt-1">
                     Cadence: {group.dinner_cadence}
                   </p>

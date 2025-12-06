@@ -16,7 +16,7 @@ export default function ManageGroupPage() {
   const [message, setMessage] = useState('');
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
-  const group = groups.find(g => g.id === groupId);
+  const group = groups.find(g => g.groupid === groupId);
   const isAdmin = group && group.admin_id === 'current-user-id'; // This should be the current user's ID
   const [cadence, setCadence] = useState(group?.dinner_cadence || 'monthly');
 
