@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { PageContainer, ContentContainer, Button, Card, Select, Footer, PageHeader } from '@/components';
 import { manageGroupContent } from '@/content/manageGroup';
 import { createGroupContent } from '@/content/createGroup';
 import { useInviteLinks, useGroups, usePairings } from '@/hooks';
+import { supabase } from '@/lib/supabase';
 
 export default function ManageGroupPage() {
   const params = useParams();
@@ -15,9 +16,18 @@ export default function ManageGroupPage() {
   const { createPairings } = usePairings();
   const [message, setMessage] = useState('');
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function getCurrentUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    }
+    getCurrentUser();
+  }, []);
 
   const group = groups.find(g => g.groupid === groupId);
-  const isAdmin = group && group.admin_id === 'current-user-id'; // This should be the current user's ID
+  const isAdmin = group && currentUserId && group.admin_id === currentUserId;
   const [cadence, setCadence] = useState(group?.dinner_cadence || 'monthly');
 
   const handleCreateLink = async () => {
