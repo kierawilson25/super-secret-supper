@@ -2,6 +2,14 @@
 -- This script populates the database with test data for final project demonstration
 
 -- ============================================================================
+-- IMPORTANT: Temporarily disable foreign key constraint for testing
+-- ============================================================================
+-- The People table normally references auth.users, but for testing we need to
+-- insert users without creating actual Supabase auth accounts
+
+ALTER TABLE people DROP CONSTRAINT IF EXISTS people_userid_fkey;
+
+-- ============================================================================
 -- STEP 1: Insert test users into People table
 -- ============================================================================
 -- Note: In production, these would be created via Supabase Auth signup
@@ -136,3 +144,8 @@ FROM people p
 JOIN peoplegroup pg ON p.userid = pg.users_userid
 WHERE pg.groups_groupid = (SELECT groupid FROM groups WHERE groupname = 'Database Design Class - Fall 2025')
 ORDER BY p.username;
+
+-- ============================================================================
+-- NOTE: Foreign key constraint has been removed for testing
+-- In production, all users would be in auth.users table
+-- ============================================================================
