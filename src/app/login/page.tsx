@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PageContainer, ContentContainer, Button, Input, Footer } from '@/components';
+import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader } from '@/components';
 import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
@@ -74,10 +74,8 @@ export default function LoginPage() {
   return (
     <PageContainer>
       <ContentContainer className="pt-12">
-        <h1 className="text-4xl font-bold text-[#FBE6A6] mb-4 text-center">
-          Login / Sign Up (TEST)
-        </h1>
-        <p className="text-[#F8F4F0] text-center text-sm mb-8">
+        <PageHeader>Login / Sign Up (TEST)</PageHeader>
+        <p className="text-[#F8F4F0] text-center text-base mb-8">
           Temporary login page for testing
         </p>
 
