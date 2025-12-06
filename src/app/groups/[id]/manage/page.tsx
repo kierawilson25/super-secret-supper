@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { PageContainer, ContentContainer, Button, Card, Select, Footer, PageHeader } from '@/components';
 import { manageGroupContent } from '@/content/manageGroup';
 import { createGroupContent } from '@/content/createGroup';
-import { useInviteLinks, useGroups, usePairings } from '@/hooks';
+import { useInviteLinks, useGroups } from '@/hooks';
 import { supabase } from '@/lib/supabase';
 
 export default function ManageGroupPage() {
@@ -13,7 +14,6 @@ export default function ManageGroupPage() {
   const groupId = params?.id as string;
   const { inviteLinks, createInviteLink, loading } = useInviteLinks(groupId);
   const { groups } = useGroups();
-  const { createPairings } = usePairings();
   const [message, setMessage] = useState('');
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -44,16 +44,6 @@ export default function ManageGroupPage() {
     navigator.clipboard.writeText(`${window.location.origin}/invite/${code}`);
     setCopiedLink(code);
     setTimeout(() => setCopiedLink(null), 2000);
-  };
-
-  const handlePairMembers = async () => {
-    try {
-      await createPairings(groupId, []);
-      setMessage(manageGroupContent.messages.pairingSuccess);
-      setTimeout(() => setMessage(''), 3000);
-    } catch {
-      setMessage(manageGroupContent.messages.pairingError);
-    }
   };
 
   const handleCadenceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -144,9 +134,11 @@ export default function ManageGroupPage() {
             {manageGroupContent.sections.pairings.description}
           </p>
 
-          <Button onClick={handlePairMembers}>
-            {manageGroupContent.sections.pairings.button}
-          </Button>
+          <Link href={`/groups/${groupId}/pair`}>
+            <Button>
+              {manageGroupContent.sections.pairings.button}
+            </Button>
+          </Link>
         </div>
       </ContentContainer>
       <Footer />

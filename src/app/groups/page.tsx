@@ -59,11 +59,6 @@ export default function GroupsPage() {
                     </p>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Link href={`/groups/${group.groupid}/pair`}>
-                      <Button className="text-sm px-4 py-2">
-                        Pair Members
-                      </Button>
-                    </Link>
                     <Link href={`/groups/${group.groupid}/manage`}>
                       <Button variant="secondary" className="text-sm px-4 py-2">
                         Manage
