@@ -12,59 +12,26 @@ export default function PairMembersPage() {
   const { generatePairs, loading, error } = usePairings();
   const [message, setMessage] = useState('');
   const [pairs, setPairs] = useState<PairResult[]>([]);
-  const [dinnerId, setDinnerId] = useState<string | null>(null);
   const [memberCount, setMemberCount] = useState(0);
 
   useEffect(() => {
-    async function setup() {
+    async function getMemberCount() {
       try {
-        // Get member count
         const { data: members } = await supabase
           .from('peoplegroup')
           .select('users_userid')
           .eq('groups_groupid', groupId);
 
         setMemberCount(members?.length || 0);
-
-        // Get or create a dinner for this group
-        const { data: existingDinners } = await supabase
-          .from('dinners')
-          .select('dinnerid')
-          .eq('groups_groupid', groupId)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (existingDinners && existingDinners.length > 0) {
-          setDinnerId(existingDinners[0].dinnerid);
-        } else {
-          // Create a new dinner
-          const { data: newDinner } = await supabase
-            .from('dinners')
-            .insert({
-              groups_groupid: groupId,
-              dinner_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
-            })
-            .select('dinnerid')
-            .single();
-
-          if (newDinner) {
-            setDinnerId(newDinner.dinnerid);
-          }
-        }
       } catch (err) {
-        console.error('Setup error:', err);
+        console.error('Error getting member count:', err);
       }
     }
 
-    setup();
+    getMemberCount();
   }, [groupId]);
 
   const handleGeneratePairs = async () => {
-    if (!dinnerId) {
-      setMessage('No dinner found. Please create a dinner first.');
-      return;
-    }
-
     if (memberCount < 2) {
       setMessage('You need at least 2 members to generate pairs.');
       return;
@@ -74,9 +41,9 @@ export default function PairMembersPage() {
       setMessage('');
       setPairs([]);
 
-      console.log('🎯 Generating pairs for group:', groupId, 'dinner:', dinnerId);
+      console.log('🎯 Generating pairs for group:', groupId);
 
-      const generatedPairs = await generatePairs(groupId, dinnerId);
+      const generatedPairs = await generatePairs(groupId);
       setPairs(generatedPairs);
       setMessage(`Successfully generated ${generatedPairs.length} ${generatedPairs.length === 1 ? 'pair' : 'pairs'}!`);
     } catch (err) {
@@ -91,6 +58,8 @@ export default function PairMembersPage() {
         <PageHeader>Generate Dinner Pairs</PageHeader>
         <p className="text-[#F8F4F0] text-center text-base mb-8">
           Create optimal pairings for your next dinner event
+          <br />
+          <span className="text-sm">Each pair gets their own dinner at a random location!</span>
         </p>
 
         {message && (
@@ -106,13 +75,13 @@ export default function PairMembersPage() {
               👥 Total Members: {memberCount}
             </p>
             <p className="text-[#F8F4F0] text-sm">
-              🍽️ Dinner ID: {dinnerId ? dinnerId.substring(0, 8) + '...' : 'Loading...'}
+              🍽️ Expected Pairs: {Math.floor(memberCount / 2)}
             </p>
           </div>
 
           <Button
             onClick={handleGeneratePairs}
-            disabled={loading || !dinnerId || memberCount < 2}
+            disabled={loading || memberCount < 2}
             className="mb-8"
           >
             {loading ? 'Generating Pairs...' : '✨ Generate Pairs'}
@@ -126,33 +95,56 @@ export default function PairMembersPage() {
 
               {pairs.map((pair, index) => (
                 <Card key={index}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-[#FBE6A6] font-bold text-lg mb-2">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-[#FBE6A6] font-bold text-lg">
                         Pair {index + 1} {pair.person3 ? '(Group of 3)' : ''}
                       </h3>
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[#F8F4F0] font-medium">
-                            👤 {pair.person1.username}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[#F8F4F0] font-medium">
-                            👤 {pair.person2.username}
-                          </span>
-                        </div>
-                        {pair.person3 && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-[#F8F4F0] font-medium">
-                              👤 {pair.person3.username}
-                            </span>
-                          </div>
-                        )}
+                      <div className="text-4xl">
+                        {pair.person3 ? '👨‍👩‍👦' : '👥'}
                       </div>
                     </div>
-                    <div className="text-4xl">
-                      {pair.person3 ? '👨‍👩‍👦' : '👥'}
+
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#F8F4F0] font-medium">
+                          👤 {pair.person1.username}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#F8F4F0] font-medium">
+                          👤 {pair.person2.username}
+                        </span>
+                      </div>
+                      {pair.person3 && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#F8F4F0] font-medium">
+                            👤 {pair.person3.username}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t border-[#444] pt-3 mt-2">
+                      <div className="text-[#F8F4F0] text-sm">
+                        <p className="mb-1">
+                          🍽️ <strong>Dinner ID:</strong> {pair.dinnerID.substring(0, 8)}...
+                        </p>
+                        {pair.location ? (
+                          <>
+                            <p className="mb-1">
+                              📍 <strong>Location:</strong> {pair.location.locationName}
+                            </p>
+                            <p>
+                              🏙️ <strong>City:</strong> {pair.location.locationCity}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-yellow-400">
+                            ⚠️ No location assigned yet
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Card>
@@ -160,7 +152,7 @@ export default function PairMembersPage() {
 
               <div className="bg-[#2A2A2A] rounded-lg p-4 mt-6">
                 <p className="text-[#F8F4F0] text-sm text-center">
-                  💡 These pairs have been saved to the database and won't be repeated in future pairings!
+                  💡 Each pair has their own separate dinner! These pairings have been saved and won't be repeated.
                 </p>
               </div>
             </div>

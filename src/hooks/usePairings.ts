@@ -16,6 +16,12 @@ export interface PairResult {
     userid: string;
     username: string;
   };
+  dinnerID: string;
+  location?: {
+    locationID: string;
+    locationName: string;
+    locationCity: string;
+  };
 }
 
 export function usePairings() {
@@ -25,8 +31,9 @@ export function usePairings() {
   /**
    * Generate dinner pairs for a group
    * Algorithm: Match people who have NOT eaten together before
+   * Creates a separate dinner with location for each pair
    */
-  const generatePairs = async (groupId: string, dinnerId: string): Promise<PairResult[]> => {
+  const generatePairs = async (groupId: string): Promise<PairResult[]> => {
     try {
       setLoading(true);
       setError(null);
@@ -52,7 +59,18 @@ export function usePairings() {
 
       console.log('👥 Found', members.length, 'members');
 
-      // Step 2: Get pairing history - who has eaten together before
+      // Step 2: Get available dinner locations
+      const { data: locations, error: locationsError } = await supabase
+        .from('dinner_locations')
+        .select('locationid, locationname, locationcity');
+
+      if (locationsError) {
+        console.warn('Error fetching locations:', locationsError);
+      }
+
+      console.log('🏪 Found', locations?.length || 0, 'dinner locations');
+
+      // Step 3: Get pairing history - who has eaten together before
       const { data: history, error: historyError } = await supabase
         .from('peopledinner')
         .select('users_userid, dinners_dinnerid, dinners!inner(groups_groupid)')
@@ -60,13 +78,11 @@ export function usePairings() {
 
       if (historyError) {
         console.warn('Error fetching history:', historyError);
-        // Continue without history - first dinner
       }
 
       console.log('📜 Found', history?.length || 0, 'previous dinner attendances');
 
-      // Step 3: Build pairing history map
-      // Group history by dinner, then create pairs from each dinner
+      // Step 4: Build pairing history map
       const dinnerGroups = new Map<string, string[]>();
       history?.forEach(record => {
         const dinnerId = record.dinners_dinnerid;
@@ -79,7 +95,6 @@ export function usePairings() {
       // Track who has eaten together
       const eatenTogether = new Set<string>();
       dinnerGroups.forEach(attendees => {
-        // Everyone who attended the same dinner has eaten together
         for (let i = 0; i < attendees.length; i++) {
           for (let j = i + 1; j < attendees.length; j++) {
             const pair = [attendees[i], attendees[j]].sort().join('|');
@@ -90,7 +105,7 @@ export function usePairings() {
 
       console.log('🤝 Found', eatenTogether.size, 'existing pairings to avoid');
 
-      // Step 4: Generate optimal pairs
+      // Step 5: Generate optimal pairs
       const userList = members.map(m => ({
         userid: m.users_userid,
         username: (m.people as any).username
@@ -99,7 +114,7 @@ export function usePairings() {
       const pairs: PairResult[] = [];
       const paired = new Set<string>();
 
-      // Simple greedy algorithm: pair people who haven't eaten together
+      // Greedy algorithm: pair people who haven't eaten together
       for (let i = 0; i < userList.length; i++) {
         if (paired.has(userList[i].userid)) continue;
 
@@ -115,64 +130,88 @@ export function usePairings() {
         }
 
         if (bestMatch !== null) {
-          // Found a match!
-          pairs.push({
+          // Create a dinner for this pair
+          const dinnerDate = new Date();
+          dinnerDate.setDate(dinnerDate.getDate() + 7); // 1 week from now
+
+          const { data: newDinner, error: dinnerError } = await supabase
+            .from('dinners')
+            .insert({
+              groups_groupid: groupId,
+              dinner_date: dinnerDate.toISOString(),
+              dinner_locations_locationid: locations && locations.length > 0
+                ? locations[Math.floor(Math.random() * locations.length)].locationid
+                : null
+            })
+            .select('dinnerid, dinner_locations_locationid')
+            .single();
+
+          if (dinnerError) {
+            console.error('Error creating dinner:', dinnerError);
+            throw dinnerError;
+          }
+
+          // Get location details if assigned
+          let locationDetails = undefined;
+          if (newDinner.dinner_locations_locationid && locations) {
+            const loc = locations.find(l => l.locationid === newDinner.dinner_locations_locationid);
+            if (loc) {
+              locationDetails = {
+                locationID: loc.locationid,
+                locationName: loc.locationname,
+                locationCity: loc.locationcity
+              };
+            }
+          }
+
+          const pairResult: PairResult = {
             person1: userList[i],
-            person2: userList[bestMatch]
-          });
+            person2: userList[bestMatch],
+            dinnerID: newDinner.dinnerid,
+            location: locationDetails
+          };
+
+          pairs.push(pairResult);
           paired.add(userList[i].userid);
           paired.add(userList[bestMatch].userid);
-          console.log('✅ Paired:', userList[i].username, '↔️', userList[bestMatch].username);
+
+          console.log('✅ Paired:', userList[i].username, '↔️', userList[bestMatch].username,
+                      'at', locationDetails?.locationName || 'TBD');
+
+          // Insert into peopledinner
+          await supabase
+            .from('peopledinner')
+            .insert([
+              {
+                users_userid: userList[i].userid,
+                dinners_dinnerid: newDinner.dinnerid
+              },
+              {
+                users_userid: userList[bestMatch].userid,
+                dinners_dinnerid: newDinner.dinnerid
+              }
+            ]);
         }
       }
 
       // Handle unpaired people (odd number)
       const unpaired = userList.filter(u => !paired.has(u.userid));
-      if (unpaired.length > 0) {
-        if (pairs.length > 0) {
-          // Add unpaired person to last pair (group of 3)
-          const lastPair = pairs[pairs.length - 1];
-          lastPair.person3 = unpaired[0];
-          console.log('➕ Added to group of 3:', unpaired[0].username);
-        } else {
-          // Edge case: only 1 person
-          console.warn('⚠️ Only 1 person available, cannot create pairs');
-        }
-      }
+      if (unpaired.length > 0 && pairs.length > 0) {
+        // Add unpaired person to last pair's dinner
+        const lastPair = pairs[pairs.length - 1];
+        lastPair.person3 = unpaired[0];
 
-      console.log('🎉 Generated', pairs.length, 'pairs');
-
-      // Step 5: Insert pairs into peopledinner table
-      const insertRecords = [];
-      for (const pair of pairs) {
-        insertRecords.push({
-          users_userid: pair.person1.userid,
-          dinners_dinnerid: dinnerId
-        });
-        insertRecords.push({
-          users_userid: pair.person2.userid,
-          dinners_dinnerid: dinnerId
-        });
-        if (pair.person3) {
-          insertRecords.push({
-            users_userid: pair.person3.userid,
-            dinners_dinnerid: dinnerId
-          });
-        }
-      }
-
-      if (insertRecords.length > 0) {
-        const { error: insertError } = await supabase
+        await supabase
           .from('peopledinner')
-          .insert(insertRecords);
+          .insert({
+            users_userid: unpaired[0].userid,
+            dinners_dinnerid: lastPair.dinnerID
+          });
 
-        if (insertError) {
-          console.error('❌ Error inserting pairs:', insertError);
-          throw insertError;
-        }
-
-        console.log('💾 Saved', insertRecords.length, 'dinner attendances');
+        console.log('➕ Added to group of 3:', unpaired[0].username);
       }
+
+      console.log('🎉 Generated', pairs.length, 'pairs with separate dinners');
 
       setLoading(false);
       return pairs;
