@@ -11,9 +11,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   if (isLandingPage) {
     return (
-      <h1
-        className="flex flex-col text-[5rem] md:flex-row md:flex-nowrap justify-center gap-0.5 md:gap-0 px-2 pt-4 pb-4 md:pt-6 text-center"
-      >
+      <h1 className="flex flex-col text-[5rem] md:flex-row md:flex-nowrap justify-center gap-0.5 md:gap-0 px-2 pt-4 pb-4 md:pt-6 text-center">
         <span>Super</span>
         <span className="md:ml-6">Secret</span>
         <span className="md:ml-6">Supper</span>
