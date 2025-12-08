@@ -127,9 +127,6 @@ export default function PairMembersPage() {
 
                     <div className="border-t border-[#444] pt-3 mt-2">
                       <div className="text-[#F8F4F0] text-sm">
-                        <p className="mb-1">
-                          🍽️ <strong>Dinner ID:</strong> {pair.dinnerID.substring(0, 8)}...
-                        </p>
                         {pair.location ? (
                           <>
                             <p className="mb-1">

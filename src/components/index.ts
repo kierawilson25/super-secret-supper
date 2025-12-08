@@ -6,3 +6,5 @@ export { PageContainer } from './PageContainer';
 export { ContentContainer } from './ContentContainer';
 export { Footer } from './Footer';
 export { PageHeader } from './PageHeader';
+export { GroupCard } from './GroupCard';
+export { Loading } from './Loading';

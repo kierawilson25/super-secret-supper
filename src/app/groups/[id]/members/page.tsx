@@ -1,8 +1,7 @@
 'use client';
 
-import Image from 'next/image';
 import { useParams } from 'next/navigation';
-import { PageContainer, ContentContainer, Card, Footer, PageHeader } from '@/components';
+import { PageContainer, ContentContainer, Card, Footer, PageHeader, Loading } from '@/components';
 import { useMembers } from '@/hooks';
 
 export default function GroupMembersPage() {
@@ -14,7 +13,7 @@ export default function GroupMembersPage() {
     return (
       <PageContainer>
         <ContentContainer>
-          <p className="text-[#F8F4F0]">Loading members...</p>
+          <Loading message="Loading members..." />
         </ContentContainer>
         <Footer />
       </PageContainer>
@@ -44,20 +43,10 @@ export default function GroupMembersPage() {
           {members.map(member => (
             <Card key={member.id}>
               <div className="flex items-center gap-4">
-                {member.avatar_url && (
-                  <Image
-                    src={member.avatar_url}
-                    alt={member.username || 'Member'}
-                    width={48}
-                    height={48}
-                    className="w-12 h-12 rounded-full"
-                  />
-                )}
                 <div className="flex-1">
                   <h3 className="text-[#FBE6A6] font-bold">
                     {member.username || 'Anonymous'}
                   </h3>
-                  <p className="text-[#F8F4F0] text-xs">{member.city || 'No city specified'}</p>
                 </div>
               </div>
             </Card>

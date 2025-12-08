@@ -9,9 +9,8 @@ export default function HomePage() {
       <ContentContainer className="pt-20">
         <PageHeader isLandingPage={true} />
 
-        <p style={{ textAlign: 'center' }}>Pairing you with someone new for an <br/>unforgettable dinner. <br/>
-       Sign up once. Sit down once a month. <br/> Meet someone new each time.</p>
-
+      <p style={{ textAlign: 'center' }}>Monthly dinner pairings that turn <br/>group friends into real friends. <br/>
+      Create a group, invite everyone, <br/> and we'll handle the rest.</p>
         <div className="icon">
           <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
             <circle cx="20" cy="32" r="12"/>
