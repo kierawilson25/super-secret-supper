@@ -11,6 +11,7 @@ export interface Group {
   dinner_cadence: 'monthly' | 'quarterly' | 'biweekly';
   created_at: string;
   updated_at: string;
+  member_count?: number;
 }
 
 export function useGroups() {
@@ -29,18 +30,53 @@ export function useGroups() {
           return;
         }
 
-        const { data, error } = await supabase
+        // First, get the groups the user is a member of
+        const { data: userGroups, error: groupError } = await supabase
           .from('peoplegroup')
-          .select('groups(*)')
+          .select('groups_groupid')
           .eq('users_userid', user.id);
+
+        if (groupError) {
+          console.error('Error fetching user groups:', groupError);
+          setError(groupError.message);
+          return;
+        }
+
+        const groupIds = userGroups?.map(ug => ug.groups_groupid) || [];
+
+        if (groupIds.length === 0) {
+          setGroups([]);
+          return;
+        }
+
+        // Fetch full group details
+        const { data: groupsData, error } = await supabase
+          .from('groups')
+          .select('*')
+          .in('groupid', groupIds);
 
         if (error) {
           console.error('Error fetching groups:', error);
           setError(error.message);
-        } else {
-          const groupsData = data?.map(item => (item.groups as unknown as Group)).filter(Boolean) || [];
-          setGroups(groupsData);
+          return;
         }
+
+        // Get member counts for each group
+        const groupsWithCounts = await Promise.all(
+          (groupsData || []).map(async (group) => {
+            const { count } = await supabase
+              .from('peoplegroup')
+              .select('*', { count: 'exact', head: true })
+              .eq('groups_groupid', group.groupid);
+
+            return {
+              ...group,
+              member_count: count || 0
+            } as Group;
+          })
+        );
+
+        setGroups(groupsWithCounts);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {

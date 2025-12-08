@@ -8,6 +8,6 @@ export { usePairingHistory } from './usePairingHistory';
 export type { Profile } from './useProfile';
 export type { Group } from './useGroups';
 export type { GroupMember } from './useMembers';
-export type { Pairing } from './usePairings';
+export type { PairResult } from './usePairings';
 export type { InviteLink } from './useInviteLinks';
-export type { PairingHistory } from './usePairingHistory';
+export type { PairingHistoryItem } from './usePairingHistory';

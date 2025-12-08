@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PageContainer, ContentContainer, Button, Input, Footer, Card, PageHeader } from '@/components';
+import { PageContainer, ContentContainer, Button, Input, Footer, Card, PageHeader, Loading } from '@/components';
 import { profileContent } from '@/content/profile';
 import { useProfile, useGroups } from '@/hooks';
 
@@ -45,7 +45,7 @@ export default function ProfilePage() {
     return (
       <PageContainer>
         <ContentContainer>
-          <p className="text-[#F8F4F0]">Loading...</p>
+          <Loading />
         </ContentContainer>
         <Footer />
       </PageContainer>

@@ -74,9 +74,9 @@ export default function LoginPage() {
   return (
     <PageContainer>
       <ContentContainer className="pt-12">
-        <PageHeader>Login / Sign Up (TEST)</PageHeader>
+        <PageHeader>Welcome</PageHeader>
         <p className="text-[#F8F4F0] text-center text-base mb-8">
-          Temporary login page for testing
+          Login or sign up to get started
         </p>
 
         <form className="w-full space-y-6">

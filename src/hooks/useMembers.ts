@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Profile } from './useProfile';
 
-export interface GroupMember extends Profile {
-  joined_at: string;
+export interface GroupMember {
+  id: string;
+  username: string;
 }
 
 export function useMembers(groupId: string) {
@@ -23,16 +23,22 @@ export function useMembers(groupId: string) {
     async function fetchMembers() {
       try {
         const { data, error } = await supabase
-          .from('group_members')
-          .select('user_id, joined_at, profiles(*)')
-          .eq('group_id', groupId);
+          .from('peoplegroup')
+          .select(`
+            users_userid,
+            people:users_userid (
+              userid,
+              username
+            )
+          `)
+          .eq('groups_groupid', groupId);
 
         if (error) {
           setError(error.message);
         } else {
           const membersList = data?.map(item => ({
-            ...(item.profiles as unknown as Profile),
-            joined_at: item.joined_at,
+            id: item.users_userid,
+            username: (item.people as any)?.username || 'Unknown',
           })) || [];
           setMembers(membersList);
         }
@@ -49,24 +55,30 @@ export function useMembers(groupId: string) {
   const addMember = async (userId: string) => {
     try {
       const { error } = await supabase
-        .from('group_members')
+        .from('peoplegroup')
         .insert({
-          group_id: groupId,
-          user_id: userId,
+          groups_groupid: groupId,
+          users_userid: userId,
         });
 
       if (error) throw error;
 
       // Refetch members
       const { data } = await supabase
-        .from('group_members')
-        .select('user_id, joined_at, profiles(*)')
-        .eq('group_id', groupId);
+        .from('peoplegroup')
+        .select(`
+          users_userid,
+          people:users_userid (
+            userid,
+            username
+          )
+        `)
+        .eq('groups_groupid', groupId);
 
       if (data) {
         const membersList = data?.map(item => ({
-          ...(item.profiles as unknown as Profile),
-          joined_at: item.joined_at,
+          id: item.users_userid,
+          username: (item.people as any)?.username || 'Unknown',
         })) || [];
         setMembers(membersList);
       }

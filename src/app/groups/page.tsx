@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PageContainer, ContentContainer, Button, Card, Footer, PageHeader } from '@/components';
+import { PageContainer, ContentContainer, Button, GroupCard, Footer, PageHeader, Loading } from '@/components';
 import { useGroups } from '@/hooks';
 
 export default function GroupsPage() {
@@ -12,7 +12,7 @@ export default function GroupsPage() {
       <PageContainer>
         <ContentContainer className="pt-12">
           <PageHeader>My Groups</PageHeader>
-          <p className="text-[#F8F4F0] text-center">Loading your groups...</p>
+          <Loading message="Loading your groups..." />
         </ContentContainer>
         <Footer />
       </PageContainer>
@@ -38,41 +38,14 @@ export default function GroupsPage() {
             <p className="text-[#F8F4F0] mb-6">
               You're not part of any groups yet.
             </p>
-            <Link href="/create-group">
-              <Button>Create Your First Group</Button>
-            </Link>
           </div>
         ) : (
-          <div className="space-y-4 mb-8">
+          <div className="p-4 space-y-4">
             {groups.map(group => (
-              <Card key={group.groupid}>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-[#FBE6A6] font-bold text-xl mb-2">
-                      {group.groupname}
-                    </h3>
-                    <p className="text-[#F8F4F0] text-sm mb-1">
-                      📍 {group.groupcity || 'No city specified'}
-                    </p>
-                    <p className="text-[#F8F4F0] text-sm">
-                      🍽️ Dinners: {group.dinner_cadence}
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Link href={`/groups/${group.groupid}/manage`}>
-                      <Button variant="secondary" className="text-sm px-4 py-2">
-                        Manage
-                      </Button>
-                    </Link>
-                    <Link href={`/groups/${group.groupid}/members`}>
-                      <Button variant="secondary" className="text-sm px-4 py-2">
-                        Members
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </Card>
+              <GroupCard key={group.groupid} group={group} />
+
             ))}
+
           </div>
         )}
 

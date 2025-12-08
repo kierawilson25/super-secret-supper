@@ -40,12 +40,24 @@ export function usePairings() {
 
       console.log('🔄 Starting pairing algorithm for group:', groupId);
 
-      // Step 1: Get all group members
+      // Step 1: Get group details to find the city
+      const { data: groupData, error: groupError } = await supabase
+        .from('groups')
+        .select('groupcity')
+        .eq('groupid', groupId)
+        .single();
+
+      if (groupError) throw groupError;
+      const groupCity = groupData?.groupcity;
+
+      console.log('📍 Group city:', groupCity);
+
+      // Step 2: Get all group members
       const { data: members, error: membersError } = await supabase
         .from('peoplegroup')
         .select(`
           users_userid,
-          people:userid (
+          people:users_userid (
             userid,
             username
           )
@@ -59,18 +71,25 @@ export function usePairings() {
 
       console.log('👥 Found', members.length, 'members');
 
-      // Step 2: Get available dinner locations
-      const { data: locations, error: locationsError } = await supabase
+      // Step 3: Get available dinner locations (filtered by group city)
+      let locationsQuery = supabase
         .from('dinner_locations')
         .select('locationid, locationname, locationcity');
+
+      // Only filter by city if the group has a city set
+      if (groupCity) {
+        locationsQuery = locationsQuery.eq('locationcity', groupCity);
+      }
+
+      const { data: locations, error: locationsError } = await locationsQuery;
 
       if (locationsError) {
         console.warn('Error fetching locations:', locationsError);
       }
 
-      console.log('🏪 Found', locations?.length || 0, 'dinner locations');
+      console.log('🏪 Found', locations?.length || 0, 'dinner locations in', groupCity || 'all cities');
 
-      // Step 3: Get pairing history - who has eaten together before
+      // Step 4: Get pairing history - who has eaten together before
       const { data: history, error: historyError } = await supabase
         .from('peopledinner')
         .select('users_userid, dinners_dinnerid, dinners!inner(groups_groupid)')

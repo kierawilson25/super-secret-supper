@@ -1,47 +1,105 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
-export interface PairingHistory {
-  id: string;
-  user_1_id: string;
-  user_2_id: string;
-  created_at: string;
+export interface PairingHistoryItem {
+  dinnerID: string;
+  dinnerDate: string;
+  location?: {
+    locationName: string;
+    locationCity: string;
+  };
+  attendees: {
+    userid: string;
+    username: string;
+  }[];
 }
 
-export function usePairingHistory(groupId?: string) {
-  const [history, setHistory] = useState<PairingHistory[]>([]);
+export function usePairingHistory(groupId: string) {
+  const [pairings, setPairings] = useState<PairingHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!groupId) {
-      setHistory([]);
-      setLoading(false);
-      return;
-    }
-
-    async function fetchHistory() {
+    async function fetchPairingHistory() {
       try {
-        const { data, error: queryError } = await supabase
-          .from('pairing_history')
-          .select('*');
+        setLoading(true);
+        setError(null);
 
-        if (queryError) {
-          setError(queryError.message);
-        } else {
-          setHistory(data || []);
+        // Fetch all dinners for this group with location info
+        const { data: dinners, error: dinnersError } = await supabase
+          .from('dinners')
+          .select(`
+            dinnerid,
+            dinner_date,
+            dinner_locations:dinner_locations_locationid (
+              locationname,
+              locationcity
+            )
+          `)
+          .eq('groups_groupid', groupId)
+          .order('dinner_date', { ascending: false });
+
+        if (dinnersError) throw dinnersError;
+
+        if (!dinners || dinners.length === 0) {
+          setPairings([]);
+          setLoading(false);
+          return;
         }
+
+        // For each dinner, fetch the attendees
+        const pairingsWithAttendees = await Promise.all(
+          dinners.map(async (dinner) => {
+            const { data: attendees, error: attendeesError } = await supabase
+              .from('peopledinner')
+              .select(`
+                users_userid,
+                people:users_userid (
+                  userid,
+                  username
+                )
+              `)
+              .eq('dinners_dinnerid', dinner.dinnerid);
+
+            if (attendeesError) {
+              console.error('Error fetching attendees:', attendeesError);
+              return null;
+            }
+
+            return {
+              dinnerID: dinner.dinnerid,
+              dinnerDate: dinner.dinner_date,
+              location: dinner.dinner_locations ? {
+                locationName: (dinner.dinner_locations as any).locationname,
+                locationCity: (dinner.dinner_locations as any).locationcity
+              } : undefined,
+              attendees: attendees?.map(a => ({
+                userid: a.users_userid,
+                username: (a.people as any)?.username || 'Unknown'
+              })) || []
+            };
+          })
+        );
+
+        // Filter out any null results and set the data
+        const validPairings = pairingsWithAttendees.filter(p => p !== null) as PairingHistoryItem[];
+        setPairings(validPairings);
+        setLoading(false);
+
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        console.error('Error fetching pairing history:', err);
+        setError(errorMessage);
         setLoading(false);
       }
     }
 
-    fetchHistory();
+    if (groupId) {
+      fetchPairingHistory();
+    }
   }, [groupId]);
 
-  return { history, loading, error };
+  return { pairings, loading, error };
 }
