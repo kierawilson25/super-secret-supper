@@ -7,8 +7,8 @@ import { usePairingHistory } from '@/hooks';
 
 export default function MonthPairingsPage() {
   const params = useParams();
-  const groupId = params.id as string;
-  const monthKey = params.month as string;
+  const groupId = params?.id as string;
+  const monthKey = params?.month as string;
   const { pairings, loading, error } = usePairingHistory(groupId);
 
   // Parse month key (format: YYYY-MM)

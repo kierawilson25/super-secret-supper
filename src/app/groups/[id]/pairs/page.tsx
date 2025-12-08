@@ -7,7 +7,7 @@ import { usePairingHistory } from '@/hooks';
 
 export default function PairingHistoryPage() {
   const params = useParams();
-  const groupId = params.id as string;
+  const groupId = params?.id as string;
   const { pairings, loading, error } = usePairingHistory(groupId);
 
   // Filter out pairings with no attendees and group by month

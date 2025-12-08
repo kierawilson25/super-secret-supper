@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Super Secret Supper</title>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --dark-purple: #460C58;
+      --gold: #FBE6A6;
+      --offwhite: #F8F4F0;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: var(--dark-purple);
+      color: var(--offwhite);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    h1 {
+      font-family: 'Great Vibes', cursive;
+      font-size: 7rem;
+      color: var(--gold);
+      margin: 0;
+    }
+
+    p {
+      font-size: 1.4rem;
+      margin: 1.5rem 0 2rem 0;
+      max-width: 500px;
+      line-height: 1.6;
+    }
+
+    button {
+      background-color: transparent;
+      color: var(--gold);
+      border: 2px solid var(--gold);
+      padding: 1rem 3rem;
+      font-size: 1.2rem;
+      cursor: pointer;
+      border-radius: 0;
+      font-weight: 600;
+      transition: background 0.3s, color 0.3s, transform 0.2s;
+    }
+
+    button:hover {
+      background-color: #cfa94a; /* darker gold for better contrast */
+      color: var(--offwhite);
+      transform: scale(1.05);
+    }
+
+    .icon {
+      margin: 2rem 0;
+    }
+
+    .icon svg {
+      width: 120px;
+      height: 120px;
+      stroke: var(--gold);
+      fill: none;
+      stroke-width: 4;
+    }
+
+    footer {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.9rem;
+      color: var(--offwhite);
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      width: 100%;
+    }
+
+    footer a {
+      color: var(--offwhite);
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <h1>Super Secret Supper</h1>
+    <p>Pairing you with someone new for an unforgettable dinner.<br>
+    Sign up once. Sit down once a month. Meet someone new each time.</p>
+
+    <div class="icon">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="32" r="12"/>
+        <circle cx="44" cy="32" r="12"/>
+        <path d="M32 18 L32 46"/>
+        <path d="M16 32 L48 32"/>
+      </svg>
+    </div>
+
+    <button>Join the Supper →</button>
+  </div>
+
+  <footer>
+    <a href="#">About</a>
+    <a href="#">FAQ</a>
+    <a href="#">Contact</a>
+  </footer>
+
+</body>
+</html>

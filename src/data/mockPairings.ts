@@ -1,18 +1,14 @@
-import { Pairing } from '@/hooks/usePairings';
+import { PairResult } from '@/hooks/usePairings';
 
-export const mockPairings: Pairing[] = [
+export const mockPairings: PairResult[] = [
   {
-    id: '1',
-    dinner_id: '1',
-    user_1_id: '1',
-    user_2_id: '3',
-    created_at: '2024-01-20T00:00:00Z',
+    person1: { userid: '1', username: 'Alice' },
+    person2: { userid: '3', username: 'Charlie' },
+    dinnerID: '1',
   },
   {
-    id: '2',
-    dinner_id: '1',
-    user_1_id: '2',
-    user_2_id: '4',
-    created_at: '2024-01-20T00:00:00Z',
+    person1: { userid: '2', username: 'Bob' },
+    person2: { userid: '4', username: 'Diana' },
+    dinnerID: '1',
   },
 ];

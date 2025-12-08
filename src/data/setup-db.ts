@@ -108,9 +108,13 @@ export async function setupDatabase() {
     console.log('Setting up Supabase database schema...');
 
     // Use the SQL endpoint to execute queries
-    const { error } = await supabase.rpc('exec_sql', {
-      sql: setupSQL,
-    }).catch(() => {
+    let error = null;
+    try {
+      const result = await supabase.rpc('exec_sql', {
+        sql: setupSQL,
+      });
+      error = result.error;
+    } catch (rpcError) {
       // Fallback: If rpc doesn't exist, log a message
       console.log('Note: Direct SQL execution via RPC not available.');
       console.log('Please run the SQL manually in your Supabase dashboard:');
@@ -118,8 +122,7 @@ export async function setupDatabase() {
       console.log('2. Click "SQL Editor"');
       console.log('3. Create a new query and paste the contents of src/data/supabase-schema.sql');
       console.log('4. Click "Run"');
-      return { data: null, error: null };
-    });
+    }
 
     if (error) {
       console.error('Error setting up database:', error);

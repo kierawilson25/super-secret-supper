@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 
 export default function PairMembersPage() {
   const params = useParams();
-  const groupId = params.id as string;
+  const groupId = params?.id as string;
   const { generatePairs, loading, error } = usePairings();
   const [message, setMessage] = useState('');
   const [pairs, setPairs] = useState<PairResult[]>([]);

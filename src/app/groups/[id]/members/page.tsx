@@ -6,7 +6,7 @@ import { useMembers } from '@/hooks';
 
 export default function GroupMembersPage() {
   const params = useParams();
-  const groupId = params.id as string;
+  const groupId = params?.id as string;
   const { members, loading, error } = useMembers(groupId);
 
   if (loading) {
