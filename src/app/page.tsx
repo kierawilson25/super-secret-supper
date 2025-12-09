@@ -14,8 +14,8 @@ export default function HomePage() {
 
 
         <div className="flex flex-col gap-4 items-center">
-          <Link href="/create-group">
-            <Button>Create a Group →</Button>
+          <Link href="/waitlist">
+            <Button>Join The Waitlist →</Button>
           </Link>
           <Link href="/about">
             <Button variant="secondary">Learn More</Button>
