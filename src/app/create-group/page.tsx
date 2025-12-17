@@ -8,13 +8,14 @@ import { useGroups } from '@/hooks';
 
 export default function CreateGroupPage() {
   const router = useRouter();
-  const { createGroup, loading, error } = useGroups();
+  const { createGroup, error } = useGroups();
   const [formData, setFormData] = useState({
     groupName: '',
     city: 'charlotte',
     cadence: 'monthly',
   });
   const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const cityOptions = [
     { value: 'charlotte', label: 'Charlotte' },
@@ -28,6 +29,7 @@ export default function CreateGroupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       await createGroup(
         formData.groupName,
@@ -38,6 +40,7 @@ export default function CreateGroupPage() {
       setTimeout(() => router.push('/groups'), 2000);
     } catch {
       setMessage(createGroupContent.messages.error);
+      setIsSubmitting(false);
     }
   };
 
@@ -82,8 +85,8 @@ export default function CreateGroupPage() {
           )}
 
           <div className="space-y-4 pt-4 w-full">
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : createGroupContent.buttons.create}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating...' : createGroupContent.buttons.create}
             </Button>
             <Button
               type="button"

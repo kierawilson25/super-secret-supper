@@ -1,22 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { PageContainer, ContentContainer, Button, GroupCard, Footer, PageHeader, Loading } from '@/components';
+import { PageContainer, ContentContainer, Button, GroupCard, Footer, PageHeader, PageLoading } from '@/components';
 import { useGroups } from '@/hooks';
 
 export default function GroupsPage() {
   const { groups, loading, error } = useGroups();
 
   if (loading) {
-    return (
-      <PageContainer>
-        <ContentContainer className="pt-12">
-          <PageHeader>My Groups</PageHeader>
-          <Loading message="Loading your groups..." />
-        </ContentContainer>
-        <Footer />
-      </PageContainer>
-    );
+    return <PageLoading message="Loading your groups..." />;
   }
 
   return (

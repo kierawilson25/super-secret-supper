@@ -1,12 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader } from '@/components';
 import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,8 +35,11 @@ export default function LoginPage() {
       }
 
       console.log('Login successful:', data);
+      console.log('returnTo parameter:', returnTo);
       setMessage('Login successful! Redirecting...');
-      setTimeout(() => router.push('/create-group'), 1000);
+      const redirectPath = returnTo || '/profile';
+      console.log('Redirecting to:', redirectPath);
+      setTimeout(() => router.push(redirectPath), 1000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       console.error('Login failed:', err);
@@ -42,41 +49,13 @@ export default function LoginPage() {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage('');
-
-    try {
-      console.log('Attempting signup with:', email);
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error('Signup error:', error);
-        throw error;
-      }
-
-      console.log('Signup successful:', data);
-      setMessage('Account created! You can now log in.');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Signup failed';
-      console.error('Signup failed:', err);
-      setMessage(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <PageContainer>
       <ContentContainer className="pt-12">
-        <PageHeader>Welcome</PageHeader>
+        <PageHeader>Welcome Back</PageHeader>
         <p className="text-[#F8F4F0] text-center text-base mb-8">
-          Login or sign up to get started
+          Login to continue to Super Secret Supper
         </p>
 
         <form className="w-full space-y-6">
@@ -110,9 +89,13 @@ export default function LoginPage() {
             <Button onClick={handleLogin} disabled={loading}>
               {loading ? 'Loading...' : 'Login'}
             </Button>
-            <Button onClick={handleSignUp} variant="secondary" disabled={loading}>
-              Sign Up
-            </Button>
+
+            <p className="text-center text-sm text-[#F8F4F0]">
+              Don't have an account?{' '}
+              <Link href="/signup" className="text-[#FBE6A6] hover:underline">
+                Sign up
+              </Link>
+            </p>
           </div>
         </form>
       </ContentContainer>
