@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { PageContainer, Button, Card, Select, Footer, PageHeader, Loading } from '@/components';
+import { PageContainer, Button, Card, Select, Footer, PageHeader, PageLoading } from '@/components';
 import { manageGroupContent } from '@/content/manageGroup';
 import { createGroupContent } from '@/content/createGroup';
 import { useInviteLinks, useGroups, usePairingHistory } from '@/hooks';
@@ -118,14 +118,7 @@ export default function ManageGroupPage() {
 
   // Show loading state while fetching user and group data
   if (userLoading || groupsLoading) {
-    return (
-      <PageContainer>
-        <div style={{ padding: '48px 16px', maxWidth: '500px', margin: '0 auto' }}>
-          <Loading />
-        </div>
-        <Footer />
-      </PageContainer>
-    );
+    return <PageLoading message="Loading group..." />;
   }
 
   // After loading, check if user is admin

@@ -8,3 +8,5 @@ export { Footer } from './Footer';
 export { PageHeader } from './PageHeader';
 export { GroupCard } from './GroupCard';
 export { Loading } from './Loading';
+export { PageLoading } from './PageLoading';
+export { default as Header } from './Header';

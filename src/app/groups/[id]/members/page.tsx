@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { PageContainer, ContentContainer, Card, Footer, PageHeader, Loading } from '@/components';
+import { PageContainer, ContentContainer, Card, Footer, PageHeader, PageLoading } from '@/components';
 import { useMembers } from '@/hooks';
 
 export default function GroupMembersPage() {
@@ -10,14 +10,7 @@ export default function GroupMembersPage() {
   const { members, loading, error } = useMembers(groupId);
 
   if (loading) {
-    return (
-      <PageContainer>
-        <ContentContainer>
-          <Loading message="Loading members..." />
-        </ContentContainer>
-        <Footer />
-      </PageContainer>
-    );
+    return <PageLoading message="Loading members..." />;
   }
 
   if (error) {

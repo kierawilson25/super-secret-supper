@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PageContainer, ContentContainer, Button, Input, Footer, Card, PageHeader, Loading } from '@/components';
+import { PageContainer, ContentContainer, Button, Input, Footer, Card, PageHeader, PageLoading } from '@/components';
 import { profileContent } from '@/content/profile';
 import { useProfile, useGroups } from '@/hooks';
 
@@ -42,14 +42,7 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return (
-      <PageContainer>
-        <ContentContainer>
-          <Loading />
-        </ContentContainer>
-        <Footer />
-      </PageContainer>
-    );
+    return <PageLoading message="Loading profile..." />;
   }
 
   return (

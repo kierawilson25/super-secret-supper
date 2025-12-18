@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { PageContainer, ContentContainer, Button, Card, Footer, PageHeader } from '@/components';
-import { usePairings, PairResult } from '@/hooks/usePairings';
+import { useParams, useRouter } from 'next/navigation';
+import { PageContainer, ContentContainer, Button, Card, Footer, PageHeader, PageLoading } from '@/components';
+import { usePairings, PairResult, useGroupAdmin } from '@/hooks';
 import { supabase } from '@/lib/supabase';
 
 export default function PairMembersPage() {
   const params = useParams();
+  const router = useRouter();
   const groupId = params?.id as string;
+  const { isAdmin, loading: adminLoading } = useGroupAdmin(groupId);
   const { generatePairs, loading, error } = usePairings();
   const [message, setMessage] = useState('');
   const [pairs, setPairs] = useState<PairResult[]>([]);
@@ -51,6 +53,34 @@ export default function PairMembersPage() {
       setMessage(error || 'Failed to generate pairs. Check console for details.');
     }
   };
+
+  // Show loading state while checking admin status
+  if (adminLoading) {
+    return <PageLoading message="Loading..." />;
+  }
+
+  // Show access denied if not admin
+  if (!isAdmin) {
+    return (
+      <PageContainer>
+        <ContentContainer className="pt-12">
+          <PageHeader>Access Denied</PageHeader>
+          <p style={{ color: '#f87171', textAlign: 'center', marginBottom: '24px' }}>
+            Only group admins can generate pairs.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <Button onClick={() => router.push(`/groups/${groupId}/pairs`)}>
+              View Your Pairings
+            </Button>
+            <Button variant="secondary" onClick={() => router.push(`/groups/${groupId}/members`)}>
+              View Members
+            </Button>
+          </div>
+        </ContentContainer>
+        <Footer />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
