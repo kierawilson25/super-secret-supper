@@ -1,15 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader } from '@/components';
 import { supabase } from '@/lib/supabase';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get('returnTo');
+  const returnTo = searchParams?.get('returnTo');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,7 +52,7 @@ export default function LoginPage() {
 
   return (
     <PageContainer>
-      <ContentContainer className="pt-12">
+      <ContentContainer className="pt-20">
         <PageHeader>Welcome Back</PageHeader>
         <p className="text-[#F8F4F0] text-center text-base mb-8">
           Login to continue to Super Secret Supper
@@ -101,5 +101,20 @@ export default function LoginPage() {
       </ContentContainer>
       <Footer />
     </PageContainer>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <PageContainer>
+        <ContentContainer className="pt-20">
+          <PageHeader>Loading...</PageHeader>
+        </ContentContainer>
+        <Footer />
+      </PageContainer>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
