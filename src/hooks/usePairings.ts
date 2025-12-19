@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getSecureRandomIndex } from '@/lib/crypto';
+import { logger } from '@/lib/logger';
 
 export interface PairResult {
   person1: {
@@ -159,7 +161,7 @@ export function usePairings() {
               groups_groupid: groupId,
               dinner_date: dinnerDate.toISOString(),
               dinner_locations_locationid: locations && locations.length > 0
-                ? locations[Math.floor(Math.random() * locations.length)].locationid
+                ? locations[getSecureRandomIndex(locations.length)].locationid
                 : null
             })
             .select('dinnerid, dinner_locations_locationid')

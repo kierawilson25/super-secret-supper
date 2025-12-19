@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { generateSecureCode } from '@/lib/crypto';
+import { logger } from '@/lib/logger';
 
 export interface InviteLink {
   id: string;
@@ -53,8 +55,8 @@ export function useInviteLinks(groupId: string) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Generate a unique code
-      const code = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      // Generate a cryptographically secure code
+      const code = generateSecureCode(24);
 
       const { data, error } = await supabase
         .from('invite_links')
@@ -70,10 +72,12 @@ export function useInviteLinks(groupId: string) {
 
       if (error) throw error;
 
+      logger.info('Invite link created', { groupId });
       setInviteLinks([...inviteLinks, data]);
       return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      logger.error('Failed to create invite link', { groupId, error: errorMessage });
       setError(errorMessage);
       throw err;
     }
@@ -119,8 +123,10 @@ export function useInviteLinks(groupId: string) {
         .eq('group_id', groupId);
 
       setInviteLinks(data || []);
+      logger.info('Invite link redeemed', { groupId: linkData.group_id });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      logger.error('Failed to redeem invite link', { error: errorMessage });
       setError(errorMessage);
       throw err;
     }
