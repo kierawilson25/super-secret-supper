@@ -1,27 +1,36 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { PageContainer, ContentContainer, Button, GroupCard, Footer, PageHeader, Loading } from '@/components';
+import { PageContainer, ContentContainer, Button, GroupCard, Footer, PageHeader, PageLoading } from '@/components';
 import { useGroups } from '@/hooks';
+import { supabase } from '@/lib/supabase';
 
 export default function GroupsPage() {
+  const router = useRouter();
   const { groups, loading, error } = useGroups();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  if (loading) {
-    return (
-      <PageContainer>
-        <ContentContainer className="pt-12">
-          <PageHeader>My Groups</PageHeader>
-          <Loading message="Loading your groups..." />
-        </ContentContainer>
-        <Footer />
-      </PageContainer>
-    );
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login?returnTo=/groups');
+      } else {
+        setIsAuthenticated(true);
+      }
+    }
+    checkAuth();
+  }, [router]);
+
+  if (isAuthenticated === null || loading) {
+    return <PageLoading message="Loading your groups..." />;
   }
 
   return (
     <PageContainer>
-      <ContentContainer className="pt-12">
+      <ContentContainer className="pt-20">
         <PageHeader>My Groups</PageHeader>
         <p className="text-[#F8F4F0] text-center text-base mb-8">
           View and manage your dinner groups

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import Header from '@/components/Header';
 
 // Fonts imported via Google Fonts in globals.css
 
@@ -15,7 +16,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="pt-20">{children}</body>
+      <body>
+        <Header />
+        {children}
+      </body>
     </html>
   );
 }

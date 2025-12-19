@@ -24,6 +24,9 @@ export function Footer() {
       <Link href="/" style={{ color: '#F8F4F0', textDecoration: 'none' }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}>
         Contact
       </Link>
+      <Link href="/login" style={{ color: '#F8F4F0', textDecoration: 'none' }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}>
+        Login
+      </Link>
     </footer>
   );
 }

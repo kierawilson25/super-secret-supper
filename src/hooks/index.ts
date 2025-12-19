@@ -4,6 +4,7 @@ export { useMembers } from './useMembers';
 export { usePairings } from './usePairings';
 export { useInviteLinks } from './useInviteLinks';
 export { usePairingHistory } from './usePairingHistory';
+export { useGroupAdmin } from './useGroupAdmin';
 
 export type { Profile } from './useProfile';
 export type { Group } from './useGroups';

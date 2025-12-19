@@ -100,10 +100,10 @@ export function useInviteLinks(groupId: string) {
 
       // Add user to group
       await supabase
-        .from('group_members')
+        .from('peoplegroup')
         .insert({
-          group_id: linkData.group_id,
-          user_id: userId,
+          groups_groupid: linkData.group_id,
+          users_userid: userId,
         });
 
       // Increment used count

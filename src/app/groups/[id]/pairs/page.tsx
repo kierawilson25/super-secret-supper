@@ -2,13 +2,17 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { PageContainer, Button, Card, Footer, PageHeader, Loading } from '@/components';
-import { usePairingHistory } from '@/hooks';
+import { PageContainer, Button, Card, Footer, PageHeader, PageLoading } from '@/components';
+import { usePairingHistory, useGroupAdmin } from '@/hooks';
 
 export default function PairingHistoryPage() {
   const params = useParams();
   const groupId = params?.id as string;
-  const { pairings, loading, error } = usePairingHistory(groupId);
+  const { isAdmin, currentUserId, loading: adminLoading } = useGroupAdmin(groupId);
+  const { pairings, loading, error } = usePairingHistory(
+    groupId,
+    isAdmin ? null : currentUserId
+  );
 
   // Filter out pairings with no attendees and group by month
   const validPairings = pairings.filter(p => p.attendees && p.attendees.length > 0);
@@ -31,16 +35,8 @@ export default function PairingHistoryPage() {
 
   const months = Object.entries(monthsMap).sort((a, b) => b[0].localeCompare(a[0]));
 
-  if (loading) {
-    return (
-      <PageContainer>
-        <div style={{ padding: '48px 16px', maxWidth: '500px', margin: '0 auto' }}>
-          <PageHeader>Previous Pairs</PageHeader>
-          <Loading message="Loading pairing history..." />
-        </div>
-        <Footer />
-      </PageContainer>
-    );
+  if (loading || adminLoading) {
+    return <PageLoading message="Loading pairing history..." />;
   }
 
   if (error) {
@@ -73,8 +69,13 @@ export default function PairingHistoryPage() {
         }}
       >
         <PageHeader>Previous Pairs</PageHeader>
+        {isAdmin && (
+          <p style={{ color: '#FBE6A6', fontSize: '14px', marginBottom: '8px', textAlign: 'center' }}>
+            👑 Admin View - Showing all pairings
+          </p>
+        )}
         <p style={{ color: '#F8F4F0', fontSize: '16px', marginBottom: '24px', textAlign: 'center' }}>
-          View past dinner pairings for this group
+          {isAdmin ? 'View past dinner pairings for this group' : 'View your past dinner pairings'}
         </p>
 
         {months.length === 0 ? (

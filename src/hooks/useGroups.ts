@@ -61,20 +61,23 @@ export function useGroups() {
           return;
         }
 
-        // Get member counts for each group
-        const groupsWithCounts = await Promise.all(
-          (groupsData || []).map(async (group) => {
-            const { count } = await supabase
-              .from('peoplegroup')
-              .select('*', { count: 'exact', head: true })
-              .eq('groups_groupid', group.groupid);
+        // Get member counts for ALL groups in a single query
+        const { data: memberCounts } = await supabase
+          .from('peoplegroup')
+          .select('groups_groupid')
+          .in('groups_groupid', groupIds);
 
-            return {
-              ...group,
-              member_count: count || 0
-            } as Group;
-          })
-        );
+        // Count members per group
+        const countMap: Record<string, number> = {};
+        memberCounts?.forEach(mc => {
+          countMap[mc.groups_groupid] = (countMap[mc.groups_groupid] || 0) + 1;
+        });
+
+        // Add member counts to groups
+        const groupsWithCounts = (groupsData || []).map(group => ({
+          ...group,
+          member_count: countMap[group.groupid] || 0
+        } as Group));
 
         setGroups(groupsWithCounts);
       } catch (err) {

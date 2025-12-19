@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { PageContainer, ContentContainer, Card, Footer, PageHeader, Loading } from '@/components';
+import { PageContainer, ContentContainer, Card, Footer, PageHeader, PageLoading } from '@/components';
 import { useMembers } from '@/hooks';
 
 export default function GroupMembersPage() {
@@ -10,20 +10,13 @@ export default function GroupMembersPage() {
   const { members, loading, error } = useMembers(groupId);
 
   if (loading) {
-    return (
-      <PageContainer>
-        <ContentContainer>
-          <Loading message="Loading members..." />
-        </ContentContainer>
-        <Footer />
-      </PageContainer>
-    );
+    return <PageLoading message="Loading members..." />;
   }
 
   if (error) {
     return (
       <PageContainer>
-        <ContentContainer>
+        <ContentContainer className="pt-20">
           <p className="text-red-400">Error: {error}</p>
         </ContentContainer>
         <Footer />
@@ -33,7 +26,7 @@ export default function GroupMembersPage() {
 
   return (
     <PageContainer>
-      <ContentContainer className="pt-12">
+      <ContentContainer className="pt-20">
         <PageHeader>Group Members</PageHeader>
         <p className="text-[#F8F4F0] text-base mb-8">
           {members.length} member{members.length !== 1 ? 's' : ''} in this group
