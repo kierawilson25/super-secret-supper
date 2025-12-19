@@ -3,7 +3,9 @@ import { z } from 'zod';
 // User validation schemas
 export const signupSchema = z.object({
   email: z.string()
+    .min(1, 'Email is required')
     .email('Please enter a valid email address')
+    .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address')
     .max(255, 'Email must be less than 255 characters'),
   username: z.string()
     .min(3, 'Username must be at least 3 characters')
@@ -23,7 +25,9 @@ export const signupSchema = z.object({
 
 export const loginSchema = z.object({
   email: z.string()
+    .min(1, 'Email is required')
     .email('Please enter a valid email address')
+    .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address')
     .max(255, 'Email must be less than 255 characters'),
   password: z.string()
     .min(1, 'Password is required')

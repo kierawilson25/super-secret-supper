@@ -28,8 +28,8 @@ function SignupForm() {
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Email validation - RFC 5322 compliant
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!email) {
       newErrors.email = 'Email is required';
     } else if (!emailRegex.test(email)) {
