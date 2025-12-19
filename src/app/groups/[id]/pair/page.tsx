@@ -63,7 +63,7 @@ export default function PairMembersPage() {
   if (!isAdmin) {
     return (
       <PageContainer>
-        <ContentContainer className="pt-12">
+        <ContentContainer className="pt-20">
           <PageHeader>Access Denied</PageHeader>
           <p style={{ color: '#f87171', textAlign: 'center', marginBottom: '24px' }}>
             Only group admins can generate pairs.
@@ -84,7 +84,7 @@ export default function PairMembersPage() {
 
   return (
     <PageContainer>
-      <ContentContainer className="pt-12">
+      <ContentContainer className="pt-20">
         <PageHeader>Generate Dinner Pairs</PageHeader>
         <p className="text-[#F8F4F0] text-center text-base mb-8">
           Create optimal pairings for your next dinner event

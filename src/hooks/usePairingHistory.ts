@@ -16,7 +16,7 @@ export interface PairingHistoryItem {
   }[];
 }
 
-export function usePairingHistory(groupId: string) {
+export function usePairingHistory(groupId: string, userId?: string | null) {
   const [pairings, setPairings] = useState<PairingHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,8 +83,16 @@ export function usePairingHistory(groupId: string) {
           })
         );
 
-        // Filter out any null results and set the data
-        const validPairings = pairingsWithAttendees.filter(p => p !== null) as PairingHistoryItem[];
+        // Filter out any null results
+        let validPairings = pairingsWithAttendees.filter(p => p !== null) as PairingHistoryItem[];
+
+        // If userId is provided, filter to only show pairings where userId is an attendee
+        if (userId) {
+          validPairings = validPairings.filter(pairing =>
+            pairing.attendees.some(attendee => attendee.userid === userId)
+          );
+        }
+
         setPairings(validPairings);
         setLoading(false);
 
@@ -99,7 +107,7 @@ export function usePairingHistory(groupId: string) {
     if (groupId) {
       fetchPairingHistory();
     }
-  }, [groupId]);
+  }, [groupId, userId]);
 
   return { pairings, loading, error };
 }

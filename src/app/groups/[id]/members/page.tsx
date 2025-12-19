@@ -16,7 +16,7 @@ export default function GroupMembersPage() {
   if (error) {
     return (
       <PageContainer>
-        <ContentContainer>
+        <ContentContainer className="pt-20">
           <p className="text-red-400">Error: {error}</p>
         </ContentContainer>
         <Footer />
@@ -26,7 +26,7 @@ export default function GroupMembersPage() {
 
   return (
     <PageContainer>
-      <ContentContainer className="pt-12">
+      <ContentContainer className="pt-20">
         <PageHeader>Group Members</PageHeader>
         <p className="text-[#F8F4F0] text-base mb-8">
           {members.length} member{members.length !== 1 ? 's' : ''} in this group

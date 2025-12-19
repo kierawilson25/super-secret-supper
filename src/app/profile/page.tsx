@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { PageContainer, ContentContainer, Button, Input, Footer, Card, PageHeader, PageLoading } from '@/components';
 import { profileContent } from '@/content/profile';
 import { useProfile, useGroups } from '@/hooks';
+import { supabase } from '@/lib/supabase';
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { profile, loading, updateProfile, error } = useProfile();
   const { groups } = useGroups();
   const [formData, setFormData] = useState({
@@ -13,6 +16,19 @@ export default function ProfilePage() {
   });
   const [message, setMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login?returnTo=/profile');
+      } else {
+        setIsAuthenticated(true);
+      }
+    }
+    checkAuth();
+  }, [router]);
 
   useEffect(() => {
     if (profile) {
@@ -41,13 +57,13 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) {
+  if (isAuthenticated === null || loading) {
     return <PageLoading message="Loading profile..." />;
   }
 
   return (
     <PageContainer>
-      <ContentContainer className="pt-12">
+      <ContentContainer className="pt-20">
         <PageHeader>{profileContent.title}</PageHeader>
         <p className="text-[#F8F4F0] text-base mb-8">
           {profileContent.subtitle}

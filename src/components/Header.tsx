@@ -10,6 +10,7 @@ export default function Header() {
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Get initial user
@@ -39,98 +40,222 @@ export default function Header() {
   }
 
   return (
-    <header
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#460C58',
-        borderBottom: '2px solid #FBE6A6',
-        zIndex: 1000,
-        padding: '1rem 2rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}
-    >
-      <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-        <Link
-          href="/profile"
-          style={{
-            color: '#FBE6A6',
-            textDecoration: 'none',
-            fontSize: '1.5rem',
-            fontFamily: 'Great Vibes, cursive',
-            fontWeight: 'bold',
-          }}
-        >
-          Super Secret Supper
-        </Link>
+    <header>
+      <style jsx>{`
+        header {
+          position: sticky;
+          top: 0;
+          background-color: #460C58;
+          border-bottom: 2px solid #FBE6A6;
+          z-index: 1000;
+        }
+
+        .header-content {
+          padding: 1rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .logo {
+          color: #FBE6A6;
+          font-size: 1.5rem;
+          font-family: 'Great Vibes', cursive;
+          font-weight: bold;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+        }
+
+        .hamburger {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+        }
+
+        .hamburger span {
+          width: 24px;
+          height: 2px;
+          background-color: #FBE6A6;
+        }
+
+        .mobile-menu {
+          border-top: 1px solid #FBE6A6;
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          align-items: flex-end;
+        }
+
+        .nav {
+          display: none;
+        }
+
+        .nav-link {
+          color: #FBE6A6 !important;
+          text-decoration: none !important;
+          font-size: 1rem;
+          transition: opacity 0.2s;
+          padding: 0.5rem 0;
+          display: block;
+        }
+
+        .nav-link:hover {
+          opacity: 0.8;
+          color: #FBE6A6 !important;
+        }
+
+        .nav-link:visited {
+          color: #FBE6A6 !important;
+        }
+
+        .nav-link.active {
+          font-weight: bold;
+          color: #FBE6A6 !important;
+        }
+
+        .logout-btn {
+          background-color: transparent;
+          border: 1px solid #FBE6A6;
+          color: #FBE6A6;
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: all 0.2s;
+          width: 100%;
+        }
+
+        .logout-btn:hover {
+          background-color: #FBE6A6;
+          color: #460C58;
+        }
+
+        @media (min-width: 640px) {
+          .hamburger {
+            display: none;
+          }
+
+          .mobile-menu {
+            display: none !important;
+          }
+
+          .nav {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+          }
+
+          .logout-btn {
+            width: auto;
+          }
+        }
+
+        @media (min-width: 768px) {
+          .header-content {
+            padding: 1rem 2rem;
+          }
+        }
+      `}</style>
+
+      <div className="header-content">
+        <button onClick={() => router.push('/profile')} className="logo">
+          SSS
+        </button>
 
         {user && (
-          <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-            <Link
-              href="/profile"
-              style={{
-                color: pathname === '/profile' ? '#FBE6A6' : '#F8F4F0',
-                textDecoration: 'none',
-                fontSize: '1rem',
-                transition: 'color 0.2s',
-              }}
+          <>
+            {/* Desktop Nav */}
+            <nav className="nav">
+              <Link
+                href="/profile"
+                className={`nav-link ${pathname === '/profile' ? 'active' : ''}`}
+              >
+                Profile
+              </Link>
+              <Link
+                href="/groups"
+                className={`nav-link ${pathname === '/groups' || pathname?.startsWith('/groups/') ? 'active' : ''}`}
+              >
+                Groups
+              </Link>
+              <Link
+                href="/create-group"
+                className={`nav-link ${pathname === '/create-group' ? 'active' : ''}`}
+              >
+                Create Group
+              </Link>
+              <button onClick={handleLogout} className="logout-btn">
+                Logout
+              </button>
+            </nav>
+
+            {/* Mobile Hamburger */}
+            <button
+              className="hamburger"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
             >
-              Profile
-            </Link>
-            <Link
-              href="/groups"
-              style={{
-                color: pathname === '/groups' || pathname.startsWith('/groups/') ? '#FBE6A6' : '#F8F4F0',
-                textDecoration: 'none',
-                fontSize: '1rem',
-                transition: 'color 0.2s',
-              }}
-            >
-              Groups
-            </Link>
-            <Link
-              href="/create-group"
-              style={{
-                color: pathname === '/create-group' ? '#FBE6A6' : '#F8F4F0',
-                textDecoration: 'none',
-                fontSize: '1rem',
-                transition: 'color 0.2s',
-              }}
-            >
-              Create Group
-            </Link>
-          </nav>
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+          </>
         )}
       </div>
 
-      {user && (
-        <button
-          onClick={handleLogout}
-          style={{
-            backgroundColor: 'transparent',
-            border: '1px solid #FBE6A6',
-            color: '#FBE6A6',
-            padding: '0.5rem 1rem',
-            borderRadius: '4px',
-            fontSize: '1rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#FBE6A6';
-            e.currentTarget.style.color = '#460C58';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#FBE6A6';
-          }}
-        >
-          Logout
-        </button>
+      {/* Mobile Menu */}
+      {user && mobileMenuOpen && (
+        <div className="mobile-menu">
+          <Link
+            href="/profile"
+            style={{
+              color: '#FBE6A6',
+              textDecoration: pathname === '/profile' ? 'underline' : 'none',
+              fontSize: '1rem',
+              padding: '0.5rem 0',
+              fontWeight: pathname === '/profile' ? 'bold' : 'normal'
+            }}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Profile
+          </Link>
+          <Link
+            href="/groups"
+            style={{
+              color: '#FBE6A6',
+              textDecoration: pathname === '/groups' || pathname?.startsWith('/groups/') ? 'underline' : 'none',
+              fontSize: '1rem',
+              padding: '0.5rem 0',
+              fontWeight: pathname === '/groups' || pathname?.startsWith('/groups/') ? 'bold' : 'normal'
+            }}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Groups
+          </Link>
+          <Link
+            href="/create-group"
+            style={{
+              color: '#FBE6A6',
+              textDecoration: pathname === '/create-group' ? 'underline' : 'none',
+              fontSize: '1rem',
+              padding: '0.5rem 0',
+              fontWeight: pathname === '/create-group' ? 'bold' : 'normal'
+            }}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Create Group
+          </Link>
+          <button onClick={handleLogout} className="logout-btn">
+            Logout
+          </button>
+        </div>
       )}
     </header>
   );

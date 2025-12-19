@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PageContainer, ContentContainer, Button, Input, Select, Footer, PageHeader } from '@/components';
+import { PageContainer, ContentContainer, Button, Input, Select, Footer, PageHeader, PageLoading } from '@/components';
 import { createGroupContent } from '@/content/createGroup';
 import { useGroups } from '@/hooks';
+import { supabase } from '@/lib/supabase';
 
 export default function CreateGroupPage() {
   const router = useRouter();
@@ -16,6 +17,19 @@ export default function CreateGroupPage() {
   });
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login?returnTo=/create-group');
+      } else {
+        setIsAuthenticated(true);
+      }
+    }
+    checkAuth();
+  }, [router]);
 
   const cityOptions = [
     { value: 'charlotte', label: 'Charlotte' },
@@ -44,9 +58,13 @@ export default function CreateGroupPage() {
     }
   };
 
+  if (isAuthenticated === null) {
+    return <PageLoading message="Loading..." />;
+  }
+
   return (
     <PageContainer>
-      <ContentContainer className="pt-12">
+      <ContentContainer className="pt-20">
         <PageHeader>{createGroupContent.title}</PageHeader>
         <p className="text-[#F8F4F0] text-center text-base mb-8">
           {createGroupContent.subtitle}
