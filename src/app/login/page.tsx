@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader } from '@/components';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 function LoginForm() {
   const router = useRouter();
@@ -22,7 +23,7 @@ function LoginForm() {
     setMessage('');
 
     try {
-      console.log('Attempting login with:', email);
+      logger.info('Login attempt started');
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -30,19 +31,18 @@ function LoginForm() {
       });
 
       if (error) {
-        console.error('Login error:', error);
+        logger.error('Login failed', { errorMessage: error.message });
         throw error;
       }
 
-      console.log('Login successful:', data);
-      console.log('returnTo parameter:', returnTo);
+      logger.info('Login successful', { userId: data.user?.id });
       setMessage('Login successful! Redirecting...');
       const redirectPath = returnTo || '/profile';
-      console.log('Redirecting to:', redirectPath);
+      logger.info('Redirecting user', { path: redirectPath });
       setTimeout(() => router.push(redirectPath), 1000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      console.error('Login failed:', err);
+      logger.error('Login attempt failed', { errorMessage });
       setMessage(errorMessage);
     } finally {
       setLoading(false);

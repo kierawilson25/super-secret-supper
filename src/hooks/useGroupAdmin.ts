@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export function useGroupAdmin(groupId: string) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -15,7 +16,7 @@ export function useGroupAdmin(groupId: string) {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError) {
-          console.error('Error getting user:', authError);
+          logger.error('Failed to get user for admin check', { errorMessage: authError.message });
           setIsAdmin(false);
           setLoading(false);
           return;
@@ -37,16 +38,19 @@ export function useGroupAdmin(groupId: string) {
           .single();
 
         if (groupError) {
-          console.error('Error fetching group:', groupError);
+          logger.error('Failed to fetch group for admin check', { groupId, errorMessage: groupError.message });
           setIsAdmin(false);
           setLoading(false);
           return;
         }
 
-        setIsAdmin(group?.admin_id === user.id);
+        const isUserAdmin = group?.admin_id === user.id;
+        logger.info('Admin status checked', { groupId, userId: user.id, isAdmin: isUserAdmin });
+        setIsAdmin(isUserAdmin);
         setLoading(false);
       } catch (err) {
-        console.error('Error checking admin status:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        logger.error('Admin status check failed', { groupId, errorMessage });
         setIsAdmin(false);
         setLoading(false);
       }

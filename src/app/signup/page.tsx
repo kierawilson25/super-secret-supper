@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader } from '@/components';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 function SignupForm() {
   const router = useRouter();
@@ -74,7 +75,7 @@ function SignupForm() {
     setLoading(true);
 
     try {
-      console.log('Attempting signup with:', email);
+      logger.info('Signup attempt started');
 
       // Create auth account
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -83,12 +84,12 @@ function SignupForm() {
       });
 
       if (authError) {
-        console.error('Signup error:', authError);
+        logger.error('Signup failed during auth creation', { errorMessage: authError.message });
         throw authError;
       }
 
       if (authData.user) {
-        console.log('Auth account created, updating username...');
+        logger.info('Auth account created, updating username', { userId: authData.user.id });
 
         // Update username in people table
         const { error: updateError } = await supabase
@@ -97,12 +98,12 @@ function SignupForm() {
           .eq('userid', authData.user.id);
 
         if (updateError) {
-          console.error('Error updating username:', updateError);
+          logger.warn('Failed to update username', { userId: authData.user.id, errorMessage: updateError.message });
           // Don't throw - account is created, username can be updated later
         }
       }
 
-      console.log('Signup successful:', authData);
+      logger.info('Signup successful', { userId: authData.user?.id });
       setMessage('Account created successfully! Redirecting to login...');
 
       // Redirect to login page (with returnTo if present)
@@ -115,7 +116,7 @@ function SignupForm() {
       }, 1500);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Signup failed';
-      console.error('Signup failed:', err);
+      logger.error('Signup attempt failed', { errorMessage });
       setMessage(errorMessage);
     } finally {
       setLoading(false);
