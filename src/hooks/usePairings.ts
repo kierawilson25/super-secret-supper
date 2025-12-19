@@ -67,8 +67,17 @@ export function usePairings() {
         .eq('groups_groupid', groupId);
 
       if (membersError) throw membersError;
+
+      // Edge case: No members
       if (!members || members.length === 0) {
-        throw new Error('No members found in group');
+        logger.error('Cannot generate pairs: no members in group', { groupId });
+        throw new Error('Cannot generate pairs: This group has no members. Please add members before generating pairs.');
+      }
+
+      // Edge case: Single member
+      if (members.length === 1) {
+        logger.error('Cannot generate pairs: only one member', { groupId, memberCount: 1 });
+        throw new Error('Cannot generate pairs: This group only has 1 member. You need at least 2 members to create dinner pairs.');
       }
 
       logger.info('Retrieved group members', { groupId, memberCount: members.length });
