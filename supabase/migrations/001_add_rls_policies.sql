@@ -17,17 +17,20 @@ ALTER TABLE dinner_locations ENABLE ROW LEVEL SECURITY;
 -- ============================================================================
 
 -- Users can view their own profile
+DROP POLICY IF EXISTS "Users can view their own profile" ON people;
 CREATE POLICY "Users can view their own profile"
   ON people FOR SELECT
   USING (auth.uid() = userid);
 
 -- Users can update their own profile
+DROP POLICY IF EXISTS "Users can update their own profile" ON people;
 CREATE POLICY "Users can update their own profile"
   ON people FOR UPDATE
   USING (auth.uid() = userid)
   WITH CHECK (auth.uid() = userid);
 
 -- Users can view profiles of people in their groups
+DROP POLICY IF EXISTS "Users can view group members profiles" ON people;
 CREATE POLICY "Users can view group members profiles"
   ON people FOR SELECT
   USING (
@@ -44,6 +47,7 @@ CREATE POLICY "Users can view group members profiles"
 -- ============================================================================
 
 -- Users can view groups they're members of
+DROP POLICY IF EXISTS "Users can view their groups" ON groups;
 CREATE POLICY "Users can view their groups"
   ON groups FOR SELECT
   USING (
@@ -55,17 +59,20 @@ CREATE POLICY "Users can view their groups"
   );
 
 -- Only admins can update their groups
+DROP POLICY IF EXISTS "Admins can update their groups" ON groups;
 CREATE POLICY "Admins can update their groups"
   ON groups FOR UPDATE
   USING (auth.uid() = admin_id)
   WITH CHECK (auth.uid() = admin_id);
 
 -- Authenticated users can create groups (they become admin)
+DROP POLICY IF EXISTS "Authenticated users can create groups" ON groups;
 CREATE POLICY "Authenticated users can create groups"
   ON groups FOR INSERT
   WITH CHECK (auth.uid() = admin_id);
 
 -- Admins can delete their groups
+DROP POLICY IF EXISTS "Admins can delete their groups" ON groups;
 CREATE POLICY "Admins can delete their groups"
   ON groups FOR DELETE
   USING (auth.uid() = admin_id);
@@ -75,6 +82,7 @@ CREATE POLICY "Admins can delete their groups"
 -- ============================================================================
 
 -- Users can view memberships for their groups
+DROP POLICY IF EXISTS "Users can view group memberships" ON peoplegroup;
 CREATE POLICY "Users can view group memberships"
   ON peoplegroup FOR SELECT
   USING (
@@ -86,6 +94,7 @@ CREATE POLICY "Users can view group memberships"
   );
 
 -- Group admins can add members
+DROP POLICY IF EXISTS "Admins can add members to their groups" ON peoplegroup;
 CREATE POLICY "Admins can add members to their groups"
   ON peoplegroup FOR INSERT
   WITH CHECK (
@@ -97,6 +106,7 @@ CREATE POLICY "Admins can add members to their groups"
   );
 
 -- Users can join groups via invite link (handled by invite redemption)
+DROP POLICY IF EXISTS "Users can join groups via invite" ON peoplegroup;
 CREATE POLICY "Users can join groups via invite"
   ON peoplegroup FOR INSERT
   WITH CHECK (
@@ -104,6 +114,7 @@ CREATE POLICY "Users can join groups via invite"
   );
 
 -- Group admins can remove members
+DROP POLICY IF EXISTS "Admins can remove members from their groups" ON peoplegroup;
 CREATE POLICY "Admins can remove members from their groups"
   ON peoplegroup FOR DELETE
   USING (
@@ -115,6 +126,7 @@ CREATE POLICY "Admins can remove members from their groups"
   );
 
 -- Users can leave groups (remove themselves)
+DROP POLICY IF EXISTS "Users can leave groups" ON peoplegroup;
 CREATE POLICY "Users can leave groups"
   ON peoplegroup FOR DELETE
   USING (users_userid = auth.uid());
@@ -124,6 +136,7 @@ CREATE POLICY "Users can leave groups"
 -- ============================================================================
 
 -- Anyone (authenticated or not) can read valid invite links by code
+DROP POLICY IF EXISTS "Anyone can read valid invite links" ON invite_links;
 CREATE POLICY "Anyone can read valid invite links"
   ON invite_links FOR SELECT
   USING (
@@ -132,6 +145,7 @@ CREATE POLICY "Anyone can read valid invite links"
   );
 
 -- Group admins can create invite links for their groups
+DROP POLICY IF EXISTS "Admins can create invite links" ON invite_links;
 CREATE POLICY "Admins can create invite links"
   ON invite_links FOR INSERT
   WITH CHECK (
@@ -143,6 +157,7 @@ CREATE POLICY "Admins can create invite links"
   );
 
 -- Group admins can view all invite links for their groups
+DROP POLICY IF EXISTS "Admins can view their group invite links" ON invite_links;
 CREATE POLICY "Admins can view their group invite links"
   ON invite_links FOR SELECT
   USING (
@@ -154,6 +169,7 @@ CREATE POLICY "Admins can view their group invite links"
   );
 
 -- Group admins can update invite links (e.g., increment used_count)
+DROP POLICY IF EXISTS "Admins can update invite links" ON invite_links;
 CREATE POLICY "Admins can update invite links"
   ON invite_links FOR UPDATE
   USING (
@@ -165,12 +181,14 @@ CREATE POLICY "Admins can update invite links"
   );
 
 -- System can update invite links (for used_count increment)
+DROP POLICY IF EXISTS "System can update invite link usage" ON invite_links;
 CREATE POLICY "System can update invite link usage"
   ON invite_links FOR UPDATE
   USING (true)
   WITH CHECK (true);
 
 -- Group admins can delete invite links
+DROP POLICY IF EXISTS "Admins can delete invite links" ON invite_links;
 CREATE POLICY "Admins can delete invite links"
   ON invite_links FOR DELETE
   USING (
@@ -186,6 +204,7 @@ CREATE POLICY "Admins can delete invite links"
 -- ============================================================================
 
 -- Users can view dinners for their groups
+DROP POLICY IF EXISTS "Users can view group dinners" ON dinners;
 CREATE POLICY "Users can view group dinners"
   ON dinners FOR SELECT
   USING (
@@ -197,6 +216,7 @@ CREATE POLICY "Users can view group dinners"
   );
 
 -- Only group admins can create dinners (via pairing generation)
+DROP POLICY IF EXISTS "Admins can create dinners" ON dinners;
 CREATE POLICY "Admins can create dinners"
   ON dinners FOR INSERT
   WITH CHECK (
@@ -208,6 +228,7 @@ CREATE POLICY "Admins can create dinners"
   );
 
 -- Group admins can update dinners
+DROP POLICY IF EXISTS "Admins can update dinners" ON dinners;
 CREATE POLICY "Admins can update dinners"
   ON dinners FOR UPDATE
   USING (
@@ -219,6 +240,7 @@ CREATE POLICY "Admins can update dinners"
   );
 
 -- Group admins can delete dinners
+DROP POLICY IF EXISTS "Admins can delete dinners" ON dinners;
 CREATE POLICY "Admins can delete dinners"
   ON dinners FOR DELETE
   USING (
@@ -234,6 +256,7 @@ CREATE POLICY "Admins can delete dinners"
 -- ============================================================================
 
 -- Users can view attendees for dinners in their groups
+DROP POLICY IF EXISTS "Users can view dinner attendees" ON peopledinner;
 CREATE POLICY "Users can view dinner attendees"
   ON peopledinner FOR SELECT
   USING (
@@ -246,6 +269,7 @@ CREATE POLICY "Users can view dinner attendees"
   );
 
 -- Group admins can add attendees to dinners
+DROP POLICY IF EXISTS "Admins can add dinner attendees" ON peopledinner;
 CREATE POLICY "Admins can add dinner attendees"
   ON peopledinner FOR INSERT
   WITH CHECK (
@@ -258,6 +282,7 @@ CREATE POLICY "Admins can add dinner attendees"
   );
 
 -- Group admins can remove attendees from dinners
+DROP POLICY IF EXISTS "Admins can remove dinner attendees" ON peopledinner;
 CREATE POLICY "Admins can remove dinner attendees"
   ON peopledinner FOR DELETE
   USING (
@@ -274,11 +299,13 @@ CREATE POLICY "Admins can remove dinner attendees"
 -- ============================================================================
 
 -- Everyone can view dinner locations (public data)
+DROP POLICY IF EXISTS "Anyone can view dinner locations" ON dinner_locations;
 CREATE POLICY "Anyone can view dinner locations"
   ON dinner_locations FOR SELECT
   USING (true);
 
 -- Only authenticated users can suggest locations (future feature)
+DROP POLICY IF EXISTS "Authenticated users can suggest locations" ON dinner_locations;
 CREATE POLICY "Authenticated users can suggest locations"
   ON dinner_locations FOR INSERT
   WITH CHECK (auth.uid() IS NOT NULL);
