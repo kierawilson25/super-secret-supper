@@ -53,9 +53,7 @@ export const createGroupSchema = z.object({
     .max(100, 'City must be less than 100 characters')
     .trim()
     .optional(),
-  dinner_cadence: z.enum(['monthly', 'quarterly', 'biweekly'], {
-    errorMap: () => ({ message: 'Invalid dinner cadence' })
-  }),
+  dinner_cadence: z.enum(['monthly', 'quarterly', 'biweekly']),
 });
 
 // Invite validation schemas
