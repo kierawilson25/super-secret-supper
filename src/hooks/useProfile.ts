@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 export interface Profile {
   userid: string;
@@ -34,7 +35,7 @@ export function useProfile() {
           .single();
 
         if (error) {
-          console.error('Error fetching profile:', error);
+          logger.error('Failed to fetch profile', { errorMessage: error.message });
           setError(error.message);
         } else {
           setProfile(data);
@@ -54,7 +55,7 @@ export function useProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      console.log('Updating profile with:', updates);
+      logger.info('Updating profile', { userId: user.id, fields: Object.keys(updates) });
 
       const { data, error } = await supabase
         .from('people')
@@ -64,16 +65,16 @@ export function useProfile() {
         .single();
 
       if (error) {
-        console.error('Error updating profile:', error);
+        logger.error('Failed to update profile', { userId: user.id, errorMessage: error.message });
         throw error;
       }
 
-      console.log('Profile updated successfully:', data);
+      logger.info('Profile updated successfully', { userId: user.id });
       setProfile(data);
       return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('updateProfile failed:', err);
+      logger.error('Profile update failed', { errorMessage });
       setError(errorMessage);
       throw err;
     }

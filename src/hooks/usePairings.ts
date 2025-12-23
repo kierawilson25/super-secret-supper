@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getSecureRandomIndex } from '@/lib/crypto';
+import { logger } from '@/lib/logger';
 
 export interface PairResult {
   person1: {
@@ -38,7 +40,7 @@ export function usePairings() {
       setLoading(true);
       setError(null);
 
-      console.log('🔄 Starting pairing algorithm for group:', groupId);
+      logger.info('Starting pairing algorithm', { groupId });
 
       // Step 1: Get group details to find the city
       const { data: groupData, error: groupError } = await supabase
@@ -50,7 +52,7 @@ export function usePairings() {
       if (groupError) throw groupError;
       const groupCity = groupData?.groupcity;
 
-      console.log('📍 Group city:', groupCity);
+      logger.info('Retrieved group details', { groupId, groupCity });
 
       // Step 2: Get all group members
       const { data: members, error: membersError } = await supabase
@@ -65,11 +67,20 @@ export function usePairings() {
         .eq('groups_groupid', groupId);
 
       if (membersError) throw membersError;
+
+      // Edge case: No members
       if (!members || members.length === 0) {
-        throw new Error('No members found in group');
+        logger.error('Cannot generate pairs: no members in group', { groupId });
+        throw new Error('Cannot generate pairs: This group has no members. Please add members before generating pairs.');
       }
 
-      console.log('👥 Found', members.length, 'members');
+      // Edge case: Single member
+      if (members.length === 1) {
+        logger.error('Cannot generate pairs: only one member', { groupId, memberCount: 1 });
+        throw new Error('Cannot generate pairs: This group only has 1 member. You need at least 2 members to create dinner pairs.');
+      }
+
+      logger.info('Retrieved group members', { groupId, memberCount: members.length });
 
       // Step 3: Get available dinner locations (filtered by group city)
       let locationsQuery = supabase
@@ -84,10 +95,14 @@ export function usePairings() {
       const { data: locations, error: locationsError } = await locationsQuery;
 
       if (locationsError) {
-        console.warn('Error fetching locations:', locationsError);
+        logger.warn('Failed to fetch locations', { groupId, errorMessage: locationsError.message });
       }
 
-      console.log('🏪 Found', locations?.length || 0, 'dinner locations in', groupCity || 'all cities');
+      logger.info('Retrieved dinner locations', {
+        groupId,
+        locationCount: locations?.length || 0,
+        city: groupCity || 'all cities'
+      });
 
       // Step 4: Get pairing history - who has eaten together before
       const { data: history, error: historyError } = await supabase
@@ -96,10 +111,10 @@ export function usePairings() {
         .eq('dinners.groups_groupid', groupId);
 
       if (historyError) {
-        console.warn('Error fetching history:', historyError);
+        logger.warn('Failed to fetch pairing history', { groupId, errorMessage: historyError.message });
       }
 
-      console.log('📜 Found', history?.length || 0, 'previous dinner attendances');
+      logger.info('Retrieved pairing history', { groupId, historyCount: history?.length || 0 });
 
       // Step 4: Build pairing history map
       const dinnerGroups = new Map<string, string[]>();
@@ -122,7 +137,7 @@ export function usePairings() {
         }
       });
 
-      console.log('🤝 Found', eatenTogether.size, 'existing pairings to avoid');
+      logger.info('Calculated existing pairings', { groupId, existingPairCount: eatenTogether.size });
 
       // Step 5: Generate optimal pairs
       const userList = members.map(m => ({
@@ -159,14 +174,14 @@ export function usePairings() {
               groups_groupid: groupId,
               dinner_date: dinnerDate.toISOString(),
               dinner_locations_locationid: locations && locations.length > 0
-                ? locations[Math.floor(Math.random() * locations.length)].locationid
+                ? locations[getSecureRandomIndex(locations.length)].locationid
                 : null
             })
             .select('dinnerid, dinner_locations_locationid')
             .single();
 
           if (dinnerError) {
-            console.error('Error creating dinner:', dinnerError);
+            logger.error('Failed to create dinner', { groupId, errorMessage: dinnerError.message });
             throw dinnerError;
           }
 
@@ -194,8 +209,11 @@ export function usePairings() {
           paired.add(userList[i].userid);
           paired.add(userList[bestMatch].userid);
 
-          console.log('✅ Paired:', userList[i].username, '↔️', userList[bestMatch].username,
-                      'at', locationDetails?.locationName || 'TBD');
+          logger.info('Created dinner pair', {
+            groupId,
+            dinnerID: newDinner.dinnerid,
+            location: locationDetails?.locationName || 'TBD'
+          });
 
           // Insert into peopledinner
           await supabase
@@ -227,17 +245,17 @@ export function usePairings() {
             dinners_dinnerid: lastPair.dinnerID
           });
 
-        console.log('➕ Added to group of 3:', unpaired[0].username);
+        logger.info('Added unpaired member to group of 3', { groupId, dinnerID: lastPair.dinnerID });
       }
 
-      console.log('🎉 Generated', pairs.length, 'pairs with separate dinners');
+      logger.info('Pairing algorithm completed successfully', { groupId, pairCount: pairs.length });
 
       setLoading(false);
       return pairs;
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('❌ Pairing algorithm failed:', err);
+      logger.error('Pairing algorithm failed', { groupId, errorMessage });
       setError(errorMessage);
       setLoading(false);
       throw err;

@@ -10,3 +10,4 @@ export { GroupCard } from './GroupCard';
 export { Loading } from './Loading';
 export { PageLoading } from './PageLoading';
 export { default as Header } from './Header';
+export { default as ErrorBoundary } from './ErrorBoundary';

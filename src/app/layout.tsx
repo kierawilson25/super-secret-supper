@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Header from '@/components/Header';
+import { Header, ErrorBoundary } from '@/components';
 
 // Fonts imported via Google Fonts in globals.css
 
@@ -17,8 +17,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Header />
-        {children}
+        <ErrorBoundary>
+          <Header />
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );
