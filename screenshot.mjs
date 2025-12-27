@@ -7,7 +7,7 @@ async function takeScreenshots() {
 
   try {
     // Navigate to dev server without waiting for load events
-    await page.goto('http://localhost:3002', {
+    await page.goto('http://localhost:3001', {
       waitUntil: 'domcontentloaded',
       timeout: 10000
     });
