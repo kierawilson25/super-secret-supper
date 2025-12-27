@@ -175,19 +175,43 @@ export default function Header() {
             <nav className="nav">
               <Link
                 href="/profile"
-                className={`nav-link ${pathname === '/profile' ? 'active' : ''}`}
+                style={{
+                  color: '#FBE6A6',
+                  textDecoration: 'none',
+                  fontSize: '1rem',
+                  fontWeight: pathname === '/profile' ? 'bold' : 'normal',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 Profile
               </Link>
               <Link
                 href="/groups"
-                className={`nav-link ${pathname === '/groups' || pathname?.startsWith('/groups/') ? 'active' : ''}`}
+                style={{
+                  color: '#FBE6A6',
+                  textDecoration: 'none',
+                  fontSize: '1rem',
+                  fontWeight: pathname === '/groups' || pathname?.startsWith('/groups/') ? 'bold' : 'normal',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 Groups
               </Link>
               <Link
                 href="/create-group"
-                className={`nav-link ${pathname === '/create-group' ? 'active' : ''}`}
+                style={{
+                  color: '#FBE6A6',
+                  textDecoration: 'none',
+                  fontSize: '1rem',
+                  fontWeight: pathname === '/create-group' ? 'bold' : 'normal',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 Create Group
               </Link>
