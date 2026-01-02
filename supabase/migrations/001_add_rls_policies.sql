@@ -315,17 +315,26 @@ CREATE POLICY "Authenticated users can suggest locations"
 -- ============================================================================
 
 -- Add database constraints for data validation
+-- Note: These constraints only apply to NEW/UPDATED rows to avoid breaking existing data
+
+-- Drop existing constraints if they exist
+ALTER TABLE people DROP CONSTRAINT IF EXISTS username_length;
+ALTER TABLE people DROP CONSTRAINT IF EXISTS username_format;
+ALTER TABLE groups DROP CONSTRAINT IF EXISTS groupname_length;
+ALTER TABLE groups DROP CONSTRAINT IF EXISTS dinner_cadence_valid;
+
+-- Add constraints with NOT VALID to skip existing data validation
 ALTER TABLE people ADD CONSTRAINT username_length
-  CHECK (char_length(username) >= 3 AND char_length(username) <= 50);
+  CHECK (username IS NULL OR (char_length(username) >= 3 AND char_length(username) <= 50)) NOT VALID;
 
 ALTER TABLE people ADD CONSTRAINT username_format
-  CHECK (username ~ '^[a-zA-Z0-9_-]+$');
+  CHECK (username IS NULL OR username ~ '^[a-zA-Z0-9_-]+$') NOT VALID;
 
 ALTER TABLE groups ADD CONSTRAINT groupname_length
-  CHECK (char_length(groupname) >= 3 AND char_length(groupname) <= 100);
+  CHECK (char_length(groupname) >= 3 AND char_length(groupname) <= 100) NOT VALID;
 
 ALTER TABLE groups ADD CONSTRAINT dinner_cadence_valid
-  CHECK (dinner_cadence IN ('monthly', 'quarterly', 'biweekly'));
+  CHECK (dinner_cadence IN ('monthly', 'quarterly', 'biweekly')) NOT VALID;
 
 -- ============================================================================
 -- INDEXES FOR PERFORMANCE
