@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader } from '@/components';
+import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader, Alert } from '@/components';
 import { supabase } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 
@@ -11,39 +11,46 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams?.get('returnTo');
+  const errorRef = useRef<HTMLDivElement>(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
+    setError('');
+    setSuccess(false);
 
     try {
       logger.info('Login attempt started');
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        logger.error('Login failed', { errorMessage: error.message });
-        throw error;
+      if (authError) {
+        logger.error('Login failed', { errorMessage: authError.message });
+        setError(authError.message);
+        setTimeout(() => errorRef.current?.focus(), 100);
+        return;
       }
 
       logger.info('Login successful', { userId: data.user?.id });
-      setMessage('Login successful! Redirecting...');
+      setSuccess(true);
       const redirectPath = returnTo || '/profile';
       logger.info('Redirecting user', { path: redirectPath });
-      setTimeout(() => router.push(redirectPath), 1000);
+
+      setTimeout(() => router.push(redirectPath), 1500);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       logger.error('Login attempt failed', { errorMessage });
-      setMessage(errorMessage);
+      setError(errorMessage);
+      setTimeout(() => errorRef.current?.focus(), 100);
     } finally {
       setLoading(false);
     }
@@ -58,15 +65,51 @@ function LoginForm() {
           Login to continue to Super Secret Supper
         </p>
 
-        <form className="w-full space-y-6">
+        <form className="w-full space-y-6" onSubmit={handleLogin}>
+          {error && (
+            <div ref={errorRef} tabIndex={-1} className="outline-none flex justify-center">
+              <div className="border-2 border-red-400 rounded-lg p-4 max-w-md w-full text-center">
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-2xl font-bold text-red-100" aria-hidden="true">
+                    ⚠
+                  </span>
+                  <p className="text-sm leading-relaxed text-red-100">{error}</p>
+                </div>
+                <p className="text-[#F8F4F0]" style={{ fontSize: '0.9375rem', marginTop: '0.25rem' }}>
+                  Need help?{' '}
+                  <Link
+                    href="/forgot-password"
+                    className="text-[#FBE6A6] hover:underline focus:outline-none focus:ring-2 focus:ring-[#FBE6A6] rounded px-1"
+                  >
+                    Reset your password
+                  </Link>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {success && (
+            <div className="flex justify-center">
+              <Alert
+                type="success"
+                message="Login successful! Redirecting you now..."
+                className="max-w-md w-full"
+              />
+            </div>
+          )}
+
           <Input
             label="Email"
             name="email"
             type="email"
             placeholder="test@example.com"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError('');
+            }}
             required
+            autoComplete="email"
           />
 
           <Input
@@ -75,24 +118,39 @@ function LoginForm() {
             type="password"
             placeholder="••••••••"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError('');
+            }}
             required
+            autoComplete="current-password"
           />
 
-          {message && (
-            <p className={`text-center text-sm ${message.includes('success') ? 'text-green-400' : 'text-red-400'}`}>
-              {message}
-            </p>
-          )}
+          <div className="text-center -mt-2">
+            <Link
+              href="/forgot-password"
+              className="text-[#FBE6A6] hover:underline focus:outline-none focus:ring-2 focus:ring-[#FBE6A6] focus:ring-offset-2 focus:ring-offset-[#460C58] rounded px-1"
+              style={{ fontSize: '0.9375rem' }}
+            >
+              Forgot password?
+            </Link>
+          </div>
 
           <div className="space-y-4 pt-4 w-full">
-            <Button onClick={handleLogin} disabled={loading}>
-              {loading ? 'Loading...' : 'Login'}
+            <Button
+              type="submit"
+              disabled={loading}
+              aria-label={loading ? 'Logging in, please wait' : 'Log in to your account'}
+            >
+              {loading ? 'Logging in...' : 'Login'}
             </Button>
 
             <p className="text-center text-sm text-[#F8F4F0]">
               Don't have an account?{' '}
-              <Link href="/signup" className="text-[#FBE6A6] hover:underline">
+              <Link
+                href="/signup"
+                className="text-[#FBE6A6] hover:underline focus:outline-none focus:ring-2 focus:ring-[#FBE6A6] focus:ring-offset-2 focus:ring-offset-[#460C58] rounded px-1"
+              >
                 Sign up
               </Link>
             </p>
