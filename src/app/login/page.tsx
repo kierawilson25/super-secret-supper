@@ -3,7 +3,7 @@
 import { useState, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader, LoadingOverlay } from '@/components';
+import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader } from '@/components';
 import { supabase } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 
@@ -56,9 +56,7 @@ function LoginForm() {
 
 
   return (
-    <>
-      {loading && <LoadingOverlay message="Logging in..." />}
-      <PageContainer>
+    <PageContainer>
         <ContentContainer className="pt-20">
           <PageHeader>Welcome Back</PageHeader>
           <p className="text-[#F8F4F0] text-center text-base mb-8">
@@ -149,7 +147,6 @@ function LoginForm() {
       </ContentContainer>
       <Footer />
     </PageContainer>
-    </>
   );
 }
 
