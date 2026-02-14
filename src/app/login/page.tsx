@@ -3,7 +3,7 @@
 import { useState, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader, Alert } from '@/components';
+import { PageContainer, ContentContainer, Button, Input, Footer, PageHeader, LoadingOverlay } from '@/components';
 import { supabase } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
 
@@ -17,13 +17,11 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setSuccess(false);
 
     try {
       logger.info('Login attempt started');
@@ -36,67 +34,59 @@ function LoginForm() {
       if (authError) {
         logger.error('Login failed', { errorMessage: authError.message });
         setError(authError.message);
+        setLoading(false);
         setTimeout(() => errorRef.current?.focus(), 100);
         return;
       }
 
       logger.info('Login successful', { userId: data.user?.id });
-      setSuccess(true);
-      const redirectPath = returnTo || '/profile';
+      const redirectPath = returnTo || '/groups';
       logger.info('Redirecting user', { path: redirectPath });
 
-      setTimeout(() => router.push(redirectPath), 1500);
+      // Keep loading state active while redirecting
+      router.push(redirectPath);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       logger.error('Login attempt failed', { errorMessage });
       setError(errorMessage);
-      setTimeout(() => errorRef.current?.focus(), 100);
-    } finally {
       setLoading(false);
+      setTimeout(() => errorRef.current?.focus(), 100);
     }
   };
 
 
   return (
-    <PageContainer>
-      <ContentContainer className="pt-20">
-        <PageHeader>Welcome Back</PageHeader>
-        <p className="text-[#F8F4F0] text-center text-base mb-8">
-          Login to continue to Super Secret Supper
-        </p>
+    <>
+      {loading && <LoadingOverlay message="Logging in..." />}
+      <PageContainer>
+        <ContentContainer className="pt-20">
+          <PageHeader>Welcome Back</PageHeader>
+          <p className="text-[#F8F4F0] text-center text-base mb-8">
+            Login to continue to Super Secret Supper
+          </p>
 
-        <form className="w-full space-y-6" onSubmit={handleLogin}>
-          {error && (
-            <div ref={errorRef} tabIndex={-1} className="outline-none flex justify-center">
-              <div className="border-2 border-red-400 rounded-lg p-4 max-w-md w-full text-center">
-                <div className="flex flex-col items-center gap-2">
-                  <span className="text-2xl font-bold text-red-100" aria-hidden="true">
-                    ⚠
-                  </span>
-                  <p className="text-sm leading-relaxed text-red-100">{error}</p>
+          <form className="w-full space-y-6" onSubmit={handleLogin}>
+            {error && (
+              <div ref={errorRef} tabIndex={-1} className="outline-none flex justify-center">
+                <div className="border-2 border-red-400 rounded-lg p-4 max-w-md w-full text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <span className="text-2xl font-bold text-red-100" aria-hidden="true">
+                      ⚠
+                    </span>
+                    <p className="text-sm leading-relaxed text-red-100">{error}</p>
+                  </div>
+                  <p className="text-[#F8F4F0]" style={{ fontSize: '0.9375rem', marginTop: '0.25rem' }}>
+                    Need help?{' '}
+                    <Link
+                      href="/forgot-password"
+                      className="text-[#FBE6A6] hover:underline focus:outline-none focus:ring-2 focus:ring-[#FBE6A6] rounded px-1"
+                    >
+                      Reset your password
+                    </Link>
+                  </p>
                 </div>
-                <p className="text-[#F8F4F0]" style={{ fontSize: '0.9375rem', marginTop: '0.25rem' }}>
-                  Need help?{' '}
-                  <Link
-                    href="/forgot-password"
-                    className="text-[#FBE6A6] hover:underline focus:outline-none focus:ring-2 focus:ring-[#FBE6A6] rounded px-1"
-                  >
-                    Reset your password
-                  </Link>
-                </p>
               </div>
-            </div>
-          )}
-
-          {success && (
-            <div className="flex justify-center">
-              <Alert
-                type="success"
-                message="Login successful! Redirecting you now..."
-                className="max-w-md w-full"
-              />
-            </div>
-          )}
+            )}
 
           <Input
             label="Email"
@@ -159,6 +149,7 @@ function LoginForm() {
       </ContentContainer>
       <Footer />
     </PageContainer>
+    </>
   );
 }
 

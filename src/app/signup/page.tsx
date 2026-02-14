@@ -77,10 +77,16 @@ function SignupForm() {
     try {
       logger.info('Signup attempt started');
 
-      // Create auth account
+      // Get the base URL for the confirmation redirect
+      const baseUrl = window.location.origin;
+
+      // Create auth account with email confirmation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${baseUrl}/auth/confirm?next=${encodeURIComponent(returnTo || '/groups')}`,
+        },
       });
 
       if (authError) {
@@ -103,17 +109,10 @@ function SignupForm() {
         }
       }
 
-      logger.info('Signup successful', { userId: authData.user?.id });
-      setMessage('Account created successfully! Redirecting to login...');
+      logger.info('Signup successful, redirecting to confirmation page', { userId: authData.user?.id });
 
-      // Redirect to login page (with returnTo if present)
-      setTimeout(() => {
-        if (returnTo) {
-          router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`);
-        } else {
-          router.push('/login');
-        }
-      }, 1500);
+      // Redirect to confirmation page
+      router.push(`/confirm-email?email=${encodeURIComponent(email)}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Signup failed';
       logger.error('Signup attempt failed', { errorMessage });
