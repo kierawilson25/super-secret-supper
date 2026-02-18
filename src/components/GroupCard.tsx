@@ -7,10 +7,14 @@ interface GroupCardProps {
     groupname: string;
     groupcity?: string;
     member_count?: number;
+    admin_id?: string;
   };
+  currentUserId?: string;
 }
 
-export function GroupCard({ group }: GroupCardProps) {
+export function GroupCard({ group, currentUserId }: GroupCardProps) {
+  const isAdmin = currentUserId && group.admin_id === currentUserId;
+
   return (
     <div className="p-4">
       <Card>
@@ -20,16 +24,20 @@ export function GroupCard({ group }: GroupCardProps) {
             {group.groupname}
           </h3>
 
-          {/* Row 2: City info and Manage button */}
+          {/* Row 2: City info and Manage button (admin only) */}
           <div className="flex items-center text-[#F8F4F0] text-sm">
             <span className="text-lg mr-[14px]">📍</span>
             <span>{group.groupcity || 'No city specified'}</span>
           </div>
-          <Link href={`/groups/${group.groupid}/manage`}>
-            <Button variant="secondary" className="text-sm px-4 py-2 w-full">
-              Manage
-            </Button>
-          </Link>
+          {isAdmin ? (
+            <Link href={`/groups/${group.groupid}/manage`}>
+              <Button variant="secondary" className="text-sm px-4 py-2 w-full">
+                Manage
+              </Button>
+            </Link>
+          ) : (
+            <div></div>
+          )}
 
           {/* Row 3: Member count and Members button */}
           <div className="flex items-center text-[#F8F4F0] text-sm">

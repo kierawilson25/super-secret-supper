@@ -11,6 +11,7 @@ export default function GroupsPage() {
   const router = useRouter();
   const { groups, loading, error } = useGroups();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     async function checkAuth() {
@@ -19,6 +20,7 @@ export default function GroupsPage() {
         router.push('/login?returnTo=/groups');
       } else {
         setIsAuthenticated(true);
+        setCurrentUserId(user.id);
       }
     }
     checkAuth();
@@ -51,19 +53,19 @@ export default function GroupsPage() {
         ) : (
           <div className="p-4 space-y-4">
             {groups.map(group => (
-              <GroupCard key={group.groupid} group={group} />
+              <GroupCard key={group.groupid} group={group} currentUserId={currentUserId || undefined} />
 
             ))}
 
           </div>
         )}
 
-        <div className="flex flex-col gap-4 items-center pt-4">
+        <div className="flex flex-col md:flex-row gap-4 justify-center pt-4">
           <Link href="/create-group">
             <Button>Create New Group</Button>
           </Link>
-          <Link href="/">
-            <Button variant="secondary">Back to Home</Button>
+          <Link href="/join">
+            <Button variant="secondary">Join with Code</Button>
           </Link>
         </div>
       </ContentContainer>

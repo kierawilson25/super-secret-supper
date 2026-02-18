@@ -240,11 +240,16 @@ export default function ManageGroupPage() {
               {inviteLinks.map(link => (
                 <div key={link.id} style={inviteLinkCard}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-                    <code style={{ color: '#FBE6A6', fontSize: '13px', wordBreak: 'break-all' }}>
-                      {link.code}
-                    </code>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ color: '#F8F4F0', fontSize: '11px', marginBottom: '4px', opacity: 0.7 }}>
+                        Invite Link:
+                      </p>
+                      <code style={{ color: '#FBE6A6', fontSize: '13px', wordBreak: 'break-all', display: 'block' }}>
+                        {`${typeof window !== 'undefined' ? window.location.origin : ''}/invite/${link.code}`}
+                      </code>
+                    </div>
                     <Button onClick={() => handleCopyLink(link.code)} variant="secondary">
-                      {copiedLink === link.code ? 'Copied!' : 'Copy'}
+                      {copiedLink === link.code ? 'Copied!' : 'Copy Link'}
                     </Button>
                   </div>
                   <p style={{ color: '#F8F4F0', fontSize: '12px', marginTop: '8px', margin: '8px 0 0 0' }}>
