@@ -1,6 +1,7 @@
 export { Alert } from './Alert';
 export { Button } from './Button';
 export { Card } from './Card';
+export { SectionCard } from './SectionCard';
 export { Input } from './Input';
 export { Select } from './Select';
 export { PageContainer } from './PageContainer';

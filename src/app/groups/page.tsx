@@ -49,18 +49,19 @@ export default function GroupsPage() {
             </p>
           </div>
         ) : (
-          <div className="p-4 space-y-4">
+          <div className="p-4">
             {groups.map(group => (
               <GroupCard key={group.groupid} group={group} />
-
             ))}
-
           </div>
         )}
 
         <div className="flex flex-col gap-4 items-center pt-4">
           <Link href="/create-group">
             <Button>Create New Group</Button>
+          </Link>
+          <Link href="/join">
+            <Button variant="secondary">Join with Code</Button>
           </Link>
           <Link href="/">
             <Button variant="secondary">Back to Home</Button>
