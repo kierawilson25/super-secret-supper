@@ -93,7 +93,7 @@ function SignupForm() {
 
         // Update username in people table
         const { error: updateError } = await supabase
-          .from('people')
+          .from('user_profiles')
           .update({ username: username })
           .eq('userid', authData.user.id);
 

@@ -26,7 +26,7 @@ export function useMembers(groupId: string) {
           .from('peoplegroup')
           .select(`
             users_userid,
-            people:users_userid (
+            user_profiles:users_userid (
               userid,
               username
             )
@@ -38,7 +38,7 @@ export function useMembers(groupId: string) {
         } else {
           const membersList = data?.map(item => ({
             id: item.users_userid,
-            username: (item.people as any)?.username || 'Unknown',
+            username: (item.user_profiles as any)?.username || 'Unknown',
           })) || [];
           setMembers(membersList);
         }
@@ -68,7 +68,7 @@ export function useMembers(groupId: string) {
         .from('peoplegroup')
         .select(`
           users_userid,
-          people:users_userid (
+          user_profiles:users_userid (
             userid,
             username
           )
@@ -78,7 +78,7 @@ export function useMembers(groupId: string) {
       if (data) {
         const membersList = data?.map(item => ({
           id: item.users_userid,
-          username: (item.people as any)?.username || 'Unknown',
+          username: (item.user_profiles as any)?.username || 'Unknown',
         })) || [];
         setMembers(membersList);
       }
