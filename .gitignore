@@ -48,5 +48,6 @@ CLAUDE.md
 # screenshots
 screenshots/
 
-# supabase
-supabase/
+# supabase (ignore config but keep migrations)
+supabase/*
+!supabase/migrations/
