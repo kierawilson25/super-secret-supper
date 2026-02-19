@@ -29,7 +29,7 @@ export function useProfile() {
         }
 
         const { data, error } = await supabase
-          .from('people')
+          .from('user_profiles')
           .select('*')
           .eq('userid', user.id)
           .single();
@@ -58,7 +58,7 @@ export function useProfile() {
       logger.info('Updating profile', { userId: user.id, fields: Object.keys(updates) });
 
       const { data, error } = await supabase
-        .from('people')
+        .from('user_profiles')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('userid', user.id)
         .select()

@@ -56,7 +56,7 @@ export function usePairingHistory(groupId: string, userId?: string | null) {
               .from('peopledinner')
               .select(`
                 users_userid,
-                people:users_userid (
+                user_profiles:users_userid (
                   userid,
                   username
                 )
@@ -77,7 +77,7 @@ export function usePairingHistory(groupId: string, userId?: string | null) {
               } : undefined,
               attendees: attendees?.map(a => ({
                 userid: a.users_userid,
-                username: (a.people as any)?.username || 'Unknown'
+                username: (a.user_profiles as any)?.username || 'Unknown'
               })) || []
             };
           })

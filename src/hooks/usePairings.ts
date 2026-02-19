@@ -59,7 +59,7 @@ export function usePairings() {
         .from('peoplegroup')
         .select(`
           users_userid,
-          people:users_userid (
+          user_profiles:users_userid (
             userid,
             username
           )
@@ -142,7 +142,7 @@ export function usePairings() {
       // Step 5: Generate optimal pairs
       const userList = members.map(m => ({
         userid: m.users_userid,
-        username: (m.people as any).username
+        username: (m.user_profiles as any).username
       }));
 
       const pairs: PairResult[] = [];
