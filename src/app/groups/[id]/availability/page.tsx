@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { PageContainer, PageHeader, Button, Footer, PageLoading } from '@/components';
-import { useGroupAdmin, useAvailability } from '@/hooks';
+import { useAvailability } from '@/hooks';
 import { availabilityContent } from '@/content/availability';
 
 const { days, months } = availabilityContent.calendar;
@@ -50,12 +50,12 @@ function organizeDatesIntoWeeks(dates: Date[]): (Date | null)[][] {
 export default function AvailabilityPage() {
   const params = useParams();
   const groupId = params?.id as string;
+  const router = useRouter();
 
-  const { isAdmin, loading: adminLoading } = useGroupAdmin(groupId);
-  const { availability, memberSummary, loading, saving, saveAvailability, fetchMemberSummary } = useAvailability(groupId);
+  const { availability, loading, saving, saveAvailability } = useAvailability(groupId);
 
   const [selected, setSelected] = useState<Record<string, Set<string>>>({});
-  const [toast, setToast] = useState<{ message: string; isError: boolean } | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const dates = getNext30Days();
   const weeks = organizeDatesIntoWeeks(dates);
@@ -70,10 +70,6 @@ export default function AvailabilityPage() {
       setSelected(copy);
     }
   }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (isAdmin) fetchMemberSummary();
-  }, [isAdmin, fetchMemberSummary]);
 
   const toggleDate = (date: Date) => {
     const key = formatDateKey(date);
@@ -108,18 +104,16 @@ export default function AvailabilityPage() {
 
   const handleSave = async () => {
     try {
+      setSaveError(null);
       await saveAvailability(selected as Parameters<typeof saveAvailability>[0]);
-      setToast({ message: availabilityContent.messages.saved, isError: false });
+      router.push(`/groups/${groupId}/availability/confirmation`);
     } catch {
-      setToast({ message: availabilityContent.messages.saveError, isError: true });
-    } finally {
-      setTimeout(() => setToast(null), 3000);
+      setSaveError(availabilityContent.messages.saveError);
+      setTimeout(() => setSaveError(null), 3000);
     }
   };
 
   const selectedDates = Object.keys(selected).sort();
-
-  // ── Styles ──────────────────────────────────────────────────────────────────
 
   const sectionCard: React.CSSProperties = {
     width: '100%',
@@ -143,9 +137,7 @@ export default function AvailabilityPage() {
     marginBottom: '16px',
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────────
-
-  if (loading || adminLoading) return <PageLoading message="Loading availability..." />;
+  if (loading) return <PageLoading message="Loading availability..." />;
 
   return (
     <PageContainer>
@@ -165,24 +157,10 @@ export default function AvailabilityPage() {
           {availabilityContent.subtitle}
         </p>
 
-        {toast && (
-          <div
-            style={{
-              ...sectionCard,
-              borderColor: toast.isError ? '#f87171' : '#4ade80',
-              padding: '12px 16px',
-              marginBottom: '16px',
-            }}
-          >
-            <p
-              style={{
-                color: toast.isError ? '#f87171' : '#4ade80',
-                fontSize: '14px',
-                textAlign: 'center',
-                margin: 0,
-              }}
-            >
-              {toast.message}
+        {saveError && (
+          <div style={{ ...sectionCard, borderColor: '#f87171', padding: '12px 16px' }}>
+            <p style={{ color: '#f87171', fontSize: '14px', textAlign: 'center', margin: 0 }}>
+              {saveError}
             </p>
           </div>
         )}
@@ -268,7 +246,6 @@ export default function AvailabilityPage() {
             <p style={sectionText}>{availabilityContent.timeSlots.description}</p>
 
             {selectedDates.map(dateKey => {
-              // Parse as local midnight to get correct day-of-week
               const d = new Date(`${dateKey}T00:00:00`);
               const label = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
               return (
@@ -310,49 +287,6 @@ export default function AvailabilityPage() {
         <Button onClick={handleSave} disabled={saving}>
           {saving ? availabilityContent.buttons.saving : availabilityContent.buttons.save}
         </Button>
-
-        {/* ── Admin: member submission summary ────────────────────────────────── */}
-        {isAdmin && memberSummary.length > 0 && (
-          <div style={{ ...sectionCard, marginTop: '8px' }}>
-            <h2 style={sectionTitle}>{availabilityContent.adminSection.title}</h2>
-            <p style={sectionText}>
-              {availabilityContent.adminSection.summaryOf(
-                memberSummary.filter(m => m.hasSubmitted).length,
-                memberSummary.length
-              )}
-            </p>
-            {memberSummary.map((m, i) => (
-              <div
-                key={m.userId}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '10px 0',
-                  borderBottom: i < memberSummary.length - 1 ? '1px solid rgba(251,230,166,0.15)' : 'none',
-                }}
-              >
-                <span style={{ color: '#F8F4F0', fontSize: '14px' }}>{m.username}</span>
-                <span
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: m.hasSubmitted ? '#4ade80' : '#f87171',
-                    backgroundColor: m.hasSubmitted ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)',
-                    border: `1px solid ${m.hasSubmitted ? '#4ade80' : '#f87171'}`,
-                    borderRadius: '12px',
-                    padding: '3px 10px',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {m.hasSubmitted
-                    ? `✓ ${availabilityContent.adminSection.submitted} (${m.slotCount})`
-                    : availabilityContent.adminSection.notSubmitted}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
       <Footer />
     </PageContainer>
