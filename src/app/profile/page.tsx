@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PageContainer,
@@ -432,14 +432,10 @@ export default function ProfilePage() {
 
   // Form state
   const [username, setUsername] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [profilePhotoPath, setProfilePhotoPath] = useState<string | null>(null);
   const [interests, setInterests] = useState<string[]>([]);
   const [relationshipStatus, setRelationshipStatus] = useState('');
   const [occupation, setOccupation] = useState('');
-
-  // Dinner count
-  const [dinnerCount, setDinnerCount] = useState(0);
-  const [dinnerLoading, setDinnerLoading] = useState(true);
 
   // Edit-lock state — all fields locked by default
   const [isEditingUsername, setIsEditingUsername] = useState(false);
@@ -469,34 +465,12 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile) {
       setUsername(profile.username || '');
-      setAvatarUrl(profile.avatar_url ?? null);
+      setProfilePhotoPath(profile.profile_photo_path ?? null);
       setInterests(profile.interests ?? []);
       setRelationshipStatus(profile.relationship_status ?? '');
       setOccupation(profile.occupation ?? '');
     }
   }, [profile]);
-
-  // Fetch dinner count
-  const fetchDinnerCount = useCallback(async (userId: string) => {
-    setDinnerLoading(true);
-    try {
-      const { count } = await supabase
-        .from('peopledinner')
-        .select('*', { count: 'exact', head: true })
-        .eq('users_userid', userId);
-      setDinnerCount(count ?? 0);
-    } catch {
-      setDinnerCount(0);
-    } finally {
-      setDinnerLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (currentUserId) {
-      fetchDinnerCount(currentUserId);
-    }
-  }, [currentUserId, fetchDinnerCount]);
 
   const showFeedback = (msg: string, error = false) => {
     setFeedbackMessage(msg);
@@ -510,7 +484,7 @@ export default function ProfilePage() {
     try {
       await updateProfile({
         username: username.trim(),
-        avatar_url: avatarUrl,
+        profile_photo_path: profilePhotoPath,
         interests,
         relationship_status: relationshipStatus || null,
         occupation: occupation.trim() || null,
@@ -576,8 +550,8 @@ export default function ProfilePage() {
         {currentUserId && (
           <AvatarSection
             username={username}
-            avatarUrl={avatarUrl}
-            onAvatarChange={setAvatarUrl}
+            avatarUrl={profilePhotoPath}
+            onAvatarChange={setProfilePhotoPath}
             userId={currentUserId}
           />
         )}
@@ -600,7 +574,7 @@ export default function ProfilePage() {
         <div style={sectionCard}>
           <p style={sectionHeading}>Dinner Score</p>
           <div style={scoreRowStyle}>
-            <DinnerScoreBadge count={dinnerCount} loading={dinnerLoading} />
+            <DinnerScoreBadge count={profile?.dinners_attended ?? 0} loading={loading} />
           </div>
           <p style={{
             fontFamily: 'Inter, sans-serif',

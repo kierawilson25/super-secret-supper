@@ -10,11 +10,14 @@ export interface Profile {
   isadmin?: boolean;
   created_at: string;
   updated_at: string;
-  // Extended profile fields — columns may not exist yet; handled gracefully
-  avatar_url?: string | null;
+  profile_photo_path?: string | null;
   interests?: string[] | null;
-  relationship_status?: string | null;
   occupation?: string | null;
+  flake_score?: number;
+  dinners_attended?: number;
+  // relationship_status: column not yet in DB — add with:
+  // ALTER TABLE public.user_profiles ADD COLUMN relationship_status text;
+  relationship_status?: string | null;
 }
 
 export function useProfile() {
@@ -60,11 +63,14 @@ export function useProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      logger.info('Updating profile', { userId: user.id, fields: Object.keys(updates) });
+      // Strip fields that don't exist as DB columns yet
+      const { relationship_status, ...safeUpdates } = updates;
+
+      logger.info('Updating profile', { userId: user.id, fields: Object.keys(safeUpdates) });
 
       const { data, error } = await supabase
         .from('user_profiles')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update({ ...safeUpdates, updated_at: new Date().toISOString() })
         .eq('userid', user.id)
         .select()
         .single();
@@ -75,7 +81,8 @@ export function useProfile() {
       }
 
       logger.info('Profile updated successfully', { userId: user.id });
-      setProfile(data);
+      // Preserve local relationship_status since it isn't persisted yet
+      setProfile({ ...data, relationship_status });
       return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
