@@ -15,7 +15,7 @@ export interface MemberAvailabilitySummary {
   slotCount: number;
 }
 
-export function useAvailability(groupId: string) {
+export function useAvailability(groupId: string, eventId: string | null = null) {
   const [availability, setAvailability] = useState<AvailabilityMap>({});
   const [memberSummary, setMemberSummary] = useState<MemberAvailabilitySummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,11 +23,14 @@ export function useAvailability(groupId: string) {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const fetchMyAvailability = useCallback(async (userId: string) => {
-    const { data } = await supabase
+    const query = supabase
       .from('availability_slots')
       .select('available_date, time_slot')
-      .eq('user_id', userId)
-      .is('dinner_event_id', null);
+      .eq('user_id', userId);
+
+    const { data } = eventId
+      ? await query.eq('dinner_event_id', eventId)
+      : await query.is('dinner_event_id', null);
 
     if (!data) return;
 
@@ -37,7 +40,7 @@ export function useAvailability(groupId: string) {
       map[slot.available_date].add(slot.time_slot as TimeSlot);
     }
     setAvailability(map);
-  }, []);
+  }, [eventId]);
 
   // Admin only — requires the "Group admins can view member availability" RLS policy
   const fetchMemberSummary = useCallback(async () => {
@@ -50,11 +53,13 @@ export function useAvailability(groupId: string) {
 
     const summaries: MemberAvailabilitySummary[] = await Promise.all(
       members.map(async (m) => {
-        const { count } = await supabase
+        const q = supabase
           .from('availability_slots')
           .select('id', { count: 'exact', head: true })
-          .eq('user_id', m.users_userid)
-          .is('dinner_event_id', null);
+          .eq('user_id', m.users_userid);
+        const { count } = eventId
+          ? await q.eq('dinner_event_id', eventId)
+          : await q.is('dinner_event_id', null);
 
         return {
           userId: m.users_userid,
@@ -83,17 +88,21 @@ export function useAvailability(groupId: string) {
     if (!currentUserId) return;
     setSaving(true);
     try {
-      // Replace all existing general availability slots for this user
-      await supabase
+      // Replace all existing availability slots for this user + event scope
+      const deleteQuery = supabase
         .from('availability_slots')
         .delete()
-        .eq('user_id', currentUserId)
-        .is('dinner_event_id', null);
+        .eq('user_id', currentUserId);
+      if (eventId) {
+        await deleteQuery.eq('dinner_event_id', eventId);
+      } else {
+        await deleteQuery.is('dinner_event_id', null);
+      }
 
-      const slots: { user_id: string; dinner_event_id: null; available_date: string; time_slot: string }[] = [];
+      const slots: { user_id: string; dinner_event_id: string | null; available_date: string; time_slot: string }[] = [];
       for (const [date, timeSlots] of Object.entries(newAvailability)) {
         for (const slot of timeSlots) {
-          slots.push({ user_id: currentUserId, dinner_event_id: null, available_date: date, time_slot: slot });
+          slots.push({ user_id: currentUserId, dinner_event_id: eventId, available_date: date, time_slot: slot });
         }
       }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { PageContainer, PageHeader, Button, Footer, PageLoading } from '@/components';
 import { useAvailability } from '@/hooks';
 import { availabilityContent } from '@/content/availability';
@@ -51,8 +51,10 @@ export default function AvailabilityPage() {
   const params = useParams();
   const groupId = params?.id as string;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromEventId = searchParams?.get('from') ?? null;
 
-  const { availability, loading, saving, saveAvailability } = useAvailability(groupId);
+  const { availability, loading, saving, saveAvailability } = useAvailability(groupId, fromEventId);
 
   const [selected, setSelected] = useState<Record<string, Set<string>>>({});
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -106,7 +108,10 @@ export default function AvailabilityPage() {
     try {
       setSaveError(null);
       await saveAvailability(selected as Parameters<typeof saveAvailability>[0]);
-      router.push(`/groups/${groupId}/availability/confirmation`);
+      const confirmUrl = fromEventId
+        ? `/groups/${groupId}/availability/confirmation?from=${fromEventId}`
+        : `/groups/${groupId}/availability/confirmation`;
+      router.push(confirmUrl);
     } catch {
       setSaveError(availabilityContent.messages.saveError);
       setTimeout(() => setSaveError(null), 3000);

@@ -46,13 +46,17 @@ const dividerStyle: React.CSSProperties = {
   margin: '14px 0',
 };
 
-const statusItemStyle = (set: boolean): React.CSSProperties => ({
-  color: set ? '#FBE6A6' : '#F8F4F0',
+const statusPillStyle = (set: boolean): React.CSSProperties => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  backgroundColor: set ? 'rgba(251,230,166,0.15)' : 'rgba(248,244,240,0.08)',
+  color: set ? '#FBE6A6' : 'rgba(248,244,240,0.55)',
+  border: `1px solid ${set ? 'rgba(251,230,166,0.45)' : 'rgba(248,244,240,0.2)'}`,
+  borderRadius: '20px',
+  padding: '3px 10px',
+  fontSize: '12px',
   fontFamily: 'Inter, sans-serif',
-  fontSize: '0.875rem',
-  marginBottom: '4px',
-  display: 'block',
-  opacity: set ? 1 : 0.8,
 });
 
 const actionRowStyle: React.CSSProperties = {
@@ -123,7 +127,7 @@ export default function PairingDetailPage() {
           <PageHeader>Pairing Details</PageHeader>
           <p style={errorStyle}>Could not load pairing details. Please try again.</p>
           <Link href="/home" style={backLinkStyle}>
-            ← Back to Dashboard
+            ← Back to Home
           </Link>
         </ContentContainer>
         <Footer />
@@ -139,7 +143,7 @@ export default function PairingDetailPage() {
           <PageHeader>Pairing Details</PageHeader>
           <p style={errorStyle}>This pairing could not be found.</p>
           <Link href="/home" style={backLinkStyle}>
-            ← Back to Dashboard
+            ← Back to Home
           </Link>
         </ContentContainer>
         <Footer />
@@ -206,23 +210,25 @@ export default function PairingDetailPage() {
               <div style={dividerStyle} aria-hidden="true" />
 
               <p style={{ ...rowStyle, fontWeight: 700, opacity: 1, marginBottom: '8px' }}>Availability</p>
-              <span style={statusItemStyle(detail.userHasSetAvailability)}>
-                <span aria-hidden="true">{detail.userHasSetAvailability ? '✓ ' : '○ '}</span>
-                You: {detail.userHasSetAvailability ? 'Submitted' : 'Not submitted yet'}
-              </span>
-              <span style={statusItemStyle(detail.partnerHasSetAvailability === true)}>
-                <span aria-hidden="true">{detail.partnerHasSetAvailability ? '✓ ' : '○ '}</span>
-                Partner: {detail.partnerHasSetAvailability ? 'Submitted' : 'Not submitted yet'}
-              </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
+                <span style={statusPillStyle(detail.userHasSetAvailability)}>
+                  <span aria-hidden="true">{detail.userHasSetAvailability ? '✓' : '○'}</span>
+                  You: {detail.userHasSetAvailability ? 'Ready' : 'Not set'}
+                </span>
+                <span style={statusPillStyle(detail.partnerHasSetAvailability === true)}>
+                  <span aria-hidden="true">{detail.partnerHasSetAvailability ? '✓' : '○'}</span>
+                  Partner: {detail.partnerHasSetAvailability ? 'Ready' : 'Not set'}
+                </span>
+              </div>
 
               {detail.groupId && (
                 <Link
-                  href={`/groups/${detail.groupId}/availability`}
+                  href={`/groups/${detail.groupId}/availability?from=${eventId}`}
                   style={ctaLinkStyle}
-                  aria-label="Set your availability for this dinner"
+                  aria-label={detail.userHasSetAvailability ? 'Edit your availability for this dinner' : 'Set your availability for this dinner'}
                   className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FBE6A6]"
                 >
-                  Set My Availability <span aria-hidden="true">→</span>
+                  {detail.userHasSetAvailability ? 'Edit My Availability' : 'Set My Availability'} <span aria-hidden="true">→</span>
                 </Link>
               )}
 
@@ -236,7 +242,7 @@ export default function PairingDetailPage() {
           style={backLinkStyle}
           className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FBE6A6]"
         >
-          ← Back to Dashboard
+          ← Back to Home
         </Link>
       </ContentContainer>
       <Footer />

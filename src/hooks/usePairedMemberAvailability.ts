@@ -17,7 +17,7 @@ export interface PairedMemberAvailabilityData {
   error: boolean;
 }
 
-export function usePairedMemberAvailability(groupId: string): PairedMemberAvailabilityData {
+export function usePairedMemberAvailability(groupId: string, eventId: string | null = null): PairedMemberAvailabilityData {
   const [partners, setPartners] = useState<PairedPartner[]>([]);
   const [dinnerId, setDinnerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,35 +29,50 @@ export function usePairedMemberAvailability(groupId: string): PairedMemberAvaila
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Find the current user's next upcoming accepted dinner_invite in this group
-        const { data: myInvites } = await supabase
-          .from('dinner_invites')
-          .select(`
-            id,
-            dinner_event_id,
-            dinner_events!inner(circle_id, scheduled_date)
-          `)
-          .eq('user_id', user.id)
-          .eq('status', 'accepted')
-          .eq('dinner_events.circle_id', groupId)
-          .gte('dinner_events.scheduled_date', new Date().toISOString())
-          .order('dinner_events.scheduled_date', { ascending: true })
-          .limit(1);
+        let dinnerEventId: string;
 
-        if (!myInvites || myInvites.length === 0) return;
+        if (eventId) {
+          // Event is known (coming from pairing detail page) — use it directly
+          dinnerEventId = eventId;
+        } else {
+          // Find the current user's next accepted dinner in this group
+          const { data: myInvites } = await supabase
+            .from('dinner_invites')
+            .select('id, dinner_event_id')
+            .eq('invitee_id', user.id)
+            .eq('status', 'accepted');
 
-        const myInvite = myInvites[0];
-        const dinnerEventId = myInvite.dinner_event_id;
+          if (!myInvites || myInvites.length === 0) return;
 
-        // Find the match this user belongs to for this event
+          const inviteEventIds = myInvites.map(i => i.dinner_event_id as string);
+          const { data: groupEvents } = await supabase
+            .from('dinner_events')
+            .select('id, scheduled_date')
+            .eq('circle_id', groupId)
+            .gte('scheduled_date', new Date().toISOString())
+            .in('id', inviteEventIds)
+            .order('scheduled_date', { ascending: true })
+            .limit(1);
+
+          if (!groupEvents || groupEvents.length === 0) return;
+
+          dinnerEventId = groupEvents[0].id as string;
+        }
+
+        // Find the match this user belongs to for this event (flat queries)
+        const { data: eventMatches } = await supabase
+          .from('dinner_matches')
+          .select('id')
+          .eq('dinner_event_id', dinnerEventId);
+
+        if (!eventMatches || eventMatches.length === 0) return;
+
+        const eventMatchIds = eventMatches.map(m => m.id as string);
         const { data: myGuests } = await supabase
           .from('dinner_match_guests')
-          .select(`
-            match_id,
-            dinner_matches!inner(dinner_event_id)
-          `)
+          .select('match_id')
           .eq('user_id', user.id)
-          .eq('dinner_matches.dinner_event_id', dinnerEventId)
+          .in('match_id', eventMatchIds)
           .limit(1);
 
         if (!myGuests || myGuests.length === 0) return;
@@ -76,12 +91,12 @@ export function usePairedMemberAvailability(groupId: string): PairedMemberAvaila
 
         const partnerIds = matchMembers.map(m => m.user_id);
 
-        // Get their general availability slots
+        // Get partner availability slots scoped to this dinner event
         const { data: slots } = await supabase
           .from('availability_slots')
           .select('user_id, available_date, time_slot')
           .in('user_id', partnerIds)
-          .is('dinner_event_id', null);
+          .eq('dinner_event_id', dinnerEventId);
 
         const availMap: Record<string, Record<string, string[]>> = {};
         for (const slot of slots ?? []) {
@@ -105,7 +120,7 @@ export function usePairedMemberAvailability(groupId: string): PairedMemberAvaila
     }
 
     load();
-  }, [groupId]);
+  }, [groupId, eventId]);
 
   return { partners, dinnerId, hasPairing: partners.length > 0, loading, error };
 }

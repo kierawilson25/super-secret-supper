@@ -144,7 +144,7 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
             }
           }
 
-          // 8. Check availability
+          // 8. Check availability scoped to this dinner event
           const { data: mySlots } = await supabase
             .from('availability_slots')
             .select('id')

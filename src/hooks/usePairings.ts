@@ -245,14 +245,17 @@ export function usePairings() {
             .from('dinner_match_guests')
             .insert(pairMembers.map(p => ({ match_id: matchId, user_id: p.userid })));
 
-          // Insert dinner_invites
+          // Insert dinner_invites (upsert to handle any duplicate from a prior partial run)
           await supabase
             .from('dinner_invites')
-            .insert(pairMembers.map(p => ({
-              dinner_event_id: dinnerEventId,
-              invitee_id: p.userid,
-              status: 'pending',
-            })));
+            .upsert(
+              pairMembers.map(p => ({
+                dinner_event_id: dinnerEventId,
+                invitee_id: p.userid,
+                status: 'pending',
+              })),
+              { onConflict: 'dinner_event_id,invitee_id', ignoreDuplicates: true }
+            );
 
           const pairResult: PairResult = {
             person1: userList[i],
@@ -285,11 +288,14 @@ export function usePairings() {
 
         await supabase
           .from('dinner_invites')
-          .insert({
-            dinner_event_id: dinnerEventId,
-            invitee_id: unpaired[0].userid,
-            status: 'pending',
-          });
+          .upsert(
+            {
+              dinner_event_id: dinnerEventId,
+              invitee_id: unpaired[0].userid,
+              status: 'pending',
+            },
+            { onConflict: 'dinner_event_id,invitee_id', ignoreDuplicates: true }
+          );
 
         logger.info('Added unpaired member to group of 3', { groupId, matchId: lastPair.dinnerID });
       }

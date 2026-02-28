@@ -41,16 +41,22 @@ const subTextStyle: React.CSSProperties = {
 
 const statusRowStyle: React.CSSProperties = {
   display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
+  flexWrap: 'wrap',
+  gap: '8px',
   margin: '12px 0',
 };
 
-const statusItemStyle = (set: boolean): React.CSSProperties => ({
-  color: set ? '#FBE6A6' : '#F8F4F0',
+const statusPillStyle = (set: boolean): React.CSSProperties => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  backgroundColor: set ? 'rgba(251,230,166,0.15)' : 'rgba(248,244,240,0.08)',
+  color: set ? '#FBE6A6' : 'rgba(248,244,240,0.55)',
+  border: `1px solid ${set ? 'rgba(251,230,166,0.45)' : 'rgba(248,244,240,0.2)'}`,
+  borderRadius: '20px',
+  padding: '3px 10px',
+  fontSize: '12px',
   fontFamily: 'Inter, sans-serif',
-  fontSize: '0.875rem',
-  opacity: set ? 1 : 0.8,
 });
 
 const actionRowStyle: React.CSSProperties = {
@@ -175,13 +181,13 @@ export function UpcomingDinnerCard({ dinner, onAccept, onDecline }: UpcomingDinn
       <p style={labelStyle}>Dinner with {partnerName}</p>
       <p style={subTextStyle}>Group: {dinner.groupName}</p>
       <div style={statusRowStyle}>
-        <span style={statusItemStyle(dinner.userHasSetAvailability)}>
-          <span aria-hidden="true">{dinner.userHasSetAvailability ? '✓ ' : '○ '}</span>
-          You {dinner.userHasSetAvailability ? 'have set availability' : 'have not set availability'}
+        <span style={statusPillStyle(dinner.userHasSetAvailability)}>
+          <span aria-hidden="true">{dinner.userHasSetAvailability ? '✓' : '○'}</span>
+          You: {dinner.userHasSetAvailability ? 'Ready' : 'Not set'}
         </span>
-        <span style={statusItemStyle(dinner.partnerHasSetAvailability === true)}>
-          <span aria-hidden="true">{dinner.partnerHasSetAvailability ? '✓ ' : '○ '}</span>
-          {partnerName} {dinner.partnerHasSetAvailability ? 'has set availability' : 'has not set availability yet'}
+        <span style={statusPillStyle(dinner.partnerHasSetAvailability === true)}>
+          <span aria-hidden="true">{dinner.partnerHasSetAvailability ? '✓' : '○'}</span>
+          {partnerName}: {dinner.partnerHasSetAvailability ? 'Ready' : 'Not set'}
         </span>
       </div>
       <Link

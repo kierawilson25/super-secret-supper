@@ -57,6 +57,43 @@ export function useUpcomingDinners(refreshKey?: number) {
 
         if (eventsError) throw eventsError;
 
+        // 2b. Filter out orphaned invites from failed pairing runs.
+        //     A valid invite always has a dinner_match_guest for this user.
+        //     Orphaned events (created then errored before match guest insert) show
+        //     as cards with "Dinner with your partner" and no partner revealed.
+        let validInvites = invites;
+        if (eventIds.length > 0) {
+          const { data: matchesForEvents } = await supabase
+            .from('dinner_matches')
+            .select('id, dinner_event_id')
+            .in('dinner_event_id', eventIds);
+
+          if (matchesForEvents && matchesForEvents.length > 0) {
+            const allMatchIds = matchesForEvents.map(m => m.id as string);
+            const { data: myGuests } = await supabase
+              .from('dinner_match_guests')
+              .select('match_id')
+              .eq('user_id', user.id)
+              .in('match_id', allMatchIds);
+
+            const myEventIds = new Set(
+              (myGuests ?? [])
+                .map(g => matchesForEvents.find(m => m.id === g.match_id)?.dinner_event_id as string)
+                .filter(Boolean)
+            );
+            validInvites = invites.filter(i => myEventIds.has(i.dinner_event_id as string));
+          } else {
+            // No matches exist for any event — all invites are orphaned
+            validInvites = [];
+          }
+        }
+
+        if (validInvites.length === 0) {
+          setDinners([]);
+          setLoading(false);
+          return;
+        }
+
         // 3. Fetch groups
         const circleIds = [...new Set((events ?? []).map(e => e.circle_id as string))];
         const { data: groupRows, error: groupsError } = await supabase
@@ -71,7 +108,7 @@ export function useUpcomingDinners(refreshKey?: number) {
 
         // 4. Build each UpcomingDinner
         const results: UpcomingDinner[] = await Promise.all(
-          invites.map(async (invite) => {
+          validInvites.map(async (invite) => {
             const event = eventMap[invite.dinner_event_id as string];
             const group = event ? groupMap[event.circle_id as string] : null;
 
@@ -127,7 +164,7 @@ export function useUpcomingDinners(refreshKey?: number) {
                 }
               }
 
-              // Check user's availability
+              // Check availability scoped to this dinner event
               const { data: mySlots } = await supabase
                 .from('availability_slots')
                 .select('id')
