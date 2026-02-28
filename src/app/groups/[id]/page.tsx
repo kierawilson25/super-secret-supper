@@ -79,24 +79,54 @@ export default function GroupDashboardPage() {
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Link href={`/groups/${groupId}/availability`} style={{ textDecoration: 'none' }}>
-            <Button>Set My Availability</Button>
-          </Link>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
 
-          <Link href={`/groups/${groupId}/members`} style={{ textDecoration: 'none' }}>
-            <Button variant="secondary">View Members</Button>
-          </Link>
-
-          {isAdmin && (
-            <Link href={`/groups/${groupId}/manage`} style={{ textDecoration: 'none' }}>
-              <Button variant="secondary">Manage Group</Button>
+          {/* Primary action */}
+          <div style={{ marginBottom: '20px' }}>
+            <Link href={`/groups/${groupId}/availability`} style={{ textDecoration: 'none' }}>
+              <Button>Set My Availability</Button>
             </Link>
-          )}
+          </div>
 
-          <Link href="/groups" style={{ textDecoration: 'none' }}>
-            <Button variant="secondary">Back to My Groups</Button>
-          </Link>
+          {/* Secondary navigation — 2-column grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isAdmin ? '1fr 1fr' : '1fr',
+              gap: '12px',
+              marginBottom: '28px',
+            }}
+          >
+            <Link href={`/groups/${groupId}/members`} style={{ textDecoration: 'none' }}>
+              <Button variant="secondary">View Members</Button>
+            </Link>
+
+            {isAdmin && (
+              <Link href={`/groups/${groupId}/manage`} style={{ textDecoration: 'none' }}>
+                <Button variant="secondary">Manage Group</Button>
+              </Link>
+            )}
+          </div>
+
+          {/* Back navigation link */}
+          <div style={{ textAlign: 'center' }}>
+            <Link
+              href="/groups"
+              style={{
+                color: '#F8F4F0',
+                fontSize: '14px',
+                textDecoration: 'none',
+                opacity: 0.7,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <span style={{ fontSize: '16px', lineHeight: '1' }}>&#8592;</span>
+              Back to My Groups
+            </Link>
+          </div>
+
         </div>
       </ContentContainer>
       <Footer />
