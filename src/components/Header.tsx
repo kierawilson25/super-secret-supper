@@ -174,6 +174,20 @@ export default function Header() {
             {/* Desktop Nav */}
             <nav className="nav">
               <Link
+                href="/home"
+                style={{
+                  color: '#FBE6A6',
+                  textDecoration: 'none',
+                  fontSize: '1rem',
+                  fontWeight: pathname === '/home' ? 'bold' : 'normal',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                Home
+              </Link>
+              <Link
                 href="/profile"
                 style={{
                   color: '#FBE6A6',
@@ -237,6 +251,19 @@ export default function Header() {
       {/* Mobile Menu */}
       {user && mobileMenuOpen && (
         <div className="mobile-menu">
+          <Link
+            href="/home"
+            style={{
+              color: '#FBE6A6',
+              textDecoration: pathname === '/home' ? 'underline' : 'none',
+              fontSize: '1rem',
+              padding: '0.5rem 0',
+              fontWeight: pathname === '/home' ? 'bold' : 'normal'
+            }}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Home
+          </Link>
           <Link
             href="/profile"
             style={{
