@@ -453,6 +453,8 @@ export default function ProfilePage() {
   const usernameDoneRef = useRef(false);
   const occupationDoneRef = useRef(false);
   const relationshipDoneRef = useRef(false);
+  // Prevents blur handlers from reverting when Save Profile is clicked
+  const saveClickedRef = useRef(false);
 
   // Inline field errors
   const [usernameError, setUsernameError] = useState('');
@@ -517,6 +519,7 @@ export default function ProfilePage() {
       showFeedback('Failed to save. Please try again.', true);
     } finally {
       setIsSaving(false);
+      saveClickedRef.current = false;
     }
   };
 
@@ -640,6 +643,7 @@ export default function ProfilePage() {
               e.target.style.borderColor = '#FBE6A6';
               e.target.style.boxShadow = 'none';
               if (usernameDoneRef.current) { usernameDoneRef.current = false; return; }
+              if (saveClickedRef.current) return;
               setUsername(usernameSnapshot);
               setUsernameError('');
               setIsEditingUsername(false);
@@ -714,6 +718,7 @@ export default function ProfilePage() {
               e.target.style.borderColor = '#FBE6A6';
               e.target.style.boxShadow = 'none';
               if (occupationDoneRef.current) { occupationDoneRef.current = false; return; }
+              if (saveClickedRef.current) return;
               setOccupation(occupationSnapshot);
               setIsEditingOccupation(false);
             }}
@@ -759,6 +764,7 @@ export default function ProfilePage() {
             }}
             onBlur={() => {
               if (relationshipDoneRef.current) { relationshipDoneRef.current = false; return; }
+              if (saveClickedRef.current) return;
               setRelationshipStatus(relationshipSnapshot);
               setIsEditingRelationship(false);
             }}
@@ -792,7 +798,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Save */}
-        <Button type="submit" disabled={isSaving}>
+        <Button type="submit" disabled={isSaving} onMouseDown={() => { saveClickedRef.current = true; }}>
           {isSaving ? 'Saving...' : 'Save Profile'}
         </Button>
       </form>
