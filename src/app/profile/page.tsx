@@ -571,6 +571,7 @@ export default function ProfilePage() {
     const trimmedUsername = username.trim();
     if (trimmedUsername.length > 0 && trimmedUsername.length < 3) {
       setUsernameError('Must be at least 3 characters.');
+      setIsEditingUsername(true); // re-open edit mode so user can fix the value immediately
       return;
     }
     setUsernameError('');
