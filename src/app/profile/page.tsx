@@ -442,6 +442,16 @@ export default function ProfilePage() {
   const [isEditingOccupation, setIsEditingOccupation] = useState(false);
   const [isEditingRelationship, setIsEditingRelationship] = useState(false);
 
+  // Snapshots — value at the moment Edit was clicked, restored on blur-without-Done
+  const [usernameSnapshot, setUsernameSnapshot] = useState('');
+  const [occupationSnapshot, setOccupationSnapshot] = useState('');
+  const [relationshipSnapshot, setRelationshipSnapshot] = useState('');
+
+  // Refs to detect when blur is caused by clicking Done (mousedown fires before blur)
+  const usernameDoneRef = useRef(false);
+  const occupationDoneRef = useRef(false);
+  const relationshipDoneRef = useRef(false);
+
   // Save state
   const [isSaving, setIsSaving] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState('');
@@ -595,7 +605,15 @@ export default function ProfilePage() {
             <p style={{ ...sectionHeading, marginBottom: 0 }}>About You</p>
             <button
               type="button"
-              onClick={() => setIsEditingUsername(v => !v)}
+              onMouseDown={() => { usernameDoneRef.current = true; }}
+              onClick={() => {
+                if (isEditingUsername) {
+                  setIsEditingUsername(false);
+                } else {
+                  setUsernameSnapshot(username);
+                  setIsEditingUsername(true);
+                }
+              }}
               style={editToggleStyle}
             >
               {isEditingUsername ? 'Done' : 'Edit'}
@@ -613,7 +631,13 @@ export default function ProfilePage() {
             disabled={!isEditingUsername}
             style={isEditingUsername ? activeInputStyle : lockedInputStyle}
             onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
-            onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; }}
+            onBlur={e => {
+              e.target.style.borderColor = '#FBE6A6';
+              e.target.style.boxShadow = 'none';
+              if (usernameDoneRef.current) { usernameDoneRef.current = false; return; }
+              setUsername(usernameSnapshot);
+              setIsEditingUsername(false);
+            }}
           />
         </div>
 
@@ -623,7 +647,15 @@ export default function ProfilePage() {
             <p style={{ ...sectionHeading, marginBottom: 0 }}>What You Do</p>
             <button
               type="button"
-              onClick={() => setIsEditingOccupation(v => !v)}
+              onMouseDown={() => { occupationDoneRef.current = true; }}
+              onClick={() => {
+                if (isEditingOccupation) {
+                  setIsEditingOccupation(false);
+                } else {
+                  setOccupationSnapshot(occupation);
+                  setIsEditingOccupation(true);
+                }
+              }}
               style={editToggleStyle}
             >
               {isEditingOccupation ? 'Done' : 'Edit'}
@@ -641,7 +673,13 @@ export default function ProfilePage() {
             disabled={!isEditingOccupation}
             style={isEditingOccupation ? activeInputStyle : lockedInputStyle}
             onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
-            onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; }}
+            onBlur={e => {
+              e.target.style.borderColor = '#FBE6A6';
+              e.target.style.boxShadow = 'none';
+              if (occupationDoneRef.current) { occupationDoneRef.current = false; return; }
+              setOccupation(occupationSnapshot);
+              setIsEditingOccupation(false);
+            }}
           />
         </div>
 
@@ -651,7 +689,15 @@ export default function ProfilePage() {
             <p style={{ ...sectionHeading, marginBottom: 0 }}>Relationship Status</p>
             <button
               type="button"
-              onClick={() => setIsEditingRelationship(v => !v)}
+              onMouseDown={() => { relationshipDoneRef.current = true; }}
+              onClick={() => {
+                if (isEditingRelationship) {
+                  setIsEditingRelationship(false);
+                } else {
+                  setRelationshipSnapshot(relationshipStatus);
+                  setIsEditingRelationship(true);
+                }
+              }}
               style={editToggleStyle}
             >
               {isEditingRelationship ? 'Done' : 'Edit'}
@@ -673,6 +719,11 @@ export default function ProfilePage() {
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'right 1rem center',
               paddingRight: '2.5rem',
+            }}
+            onBlur={() => {
+              if (relationshipDoneRef.current) { relationshipDoneRef.current = false; return; }
+              setRelationshipStatus(relationshipSnapshot);
+              setIsEditingRelationship(false);
             }}
           >
             {RELATIONSHIP_OPTIONS.map(option => (
