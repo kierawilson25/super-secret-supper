@@ -4,10 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PageContainer,
-  ContentContainer,
   Button,
-  Input,
-  Select,
   Footer,
   PageHeader,
   PageLoading,
@@ -61,6 +58,48 @@ const labelStyle: React.CSSProperties = {
   color: '#FBE6A6',
   marginBottom: '8px',
   letterSpacing: '0.05em',
+};
+
+const editToggleStyle: React.CSSProperties = {
+  fontFamily: 'Inter, sans-serif',
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#FBE6A6',
+  background: 'transparent',
+  border: '1px solid #FBE6A6',
+  borderRadius: '4px',
+  padding: '3px 10px',
+  cursor: 'pointer',
+  letterSpacing: '0.05em',
+};
+
+const lockedInputStyle: React.CSSProperties = {
+  width: '100%',
+  height: '48px',
+  padding: '0 16px',
+  borderRadius: '8px',
+  border: '2px solid rgba(251, 230, 166, 0.3)',
+  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  color: 'rgba(248, 244, 240, 0.45)',
+  fontSize: '16px',
+  fontFamily: 'Inter, sans-serif',
+  boxSizing: 'border-box' as const,
+  outline: 'none',
+  cursor: 'not-allowed',
+};
+
+const activeInputStyle: React.CSSProperties = {
+  width: '100%',
+  height: '48px',
+  padding: '0 16px',
+  borderRadius: '8px',
+  border: '2px solid #FBE6A6',
+  backgroundColor: 'white',
+  color: '#1a1a1a',
+  fontSize: '16px',
+  fontFamily: 'Inter, sans-serif',
+  boxSizing: 'border-box' as const,
+  outline: 'none',
 };
 
 // ─── Avatar section ───────────────────────────────────────────────────────────
@@ -396,7 +435,8 @@ export default function ProfilePage() {
   const [dinnerCount, setDinnerCount] = useState(0);
   const [dinnerLoading, setDinnerLoading] = useState(true);
 
-  // Edit-lock state for sensitive fields
+  // Edit-lock state — all fields locked by default
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [isEditingOccupation, setIsEditingOccupation] = useState(false);
   const [isEditingRelationship, setIsEditingRelationship] = useState(false);
 
@@ -516,8 +556,6 @@ export default function ProfilePage() {
     paddingBottom: '4px',
   };
 
-  const relationshipLabel =
-    RELATIONSHIP_OPTIONS.find(o => o.value === relationshipStatus)?.label || 'Not set';
 
   const memberSinceDate = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -573,34 +611,30 @@ export default function ProfilePage() {
 
         {/* Username */}
         <div style={sectionCard}>
-          <p style={sectionHeading}>About You</p>
-          <div style={{ marginBottom: '4px' }}>
-            <label htmlFor="username" style={labelStyle}>Username</label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder="Choose your username"
-              autoComplete="username"
-              style={{
-                width: '100%',
-                height: '48px',
-                padding: '0 16px',
-                borderRadius: '8px',
-                border: '2px solid #FBE6A6',
-                backgroundColor: 'white',
-                color: '#1a1a1a',
-                fontSize: '16px',
-                fontFamily: 'Inter, sans-serif',
-                boxSizing: 'border-box' as const,
-                outline: 'none',
-              }}
-              onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
-              onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; }}
-            />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <p style={{ ...sectionHeading, marginBottom: 0 }}>About You</p>
+            <button
+              type="button"
+              onClick={() => setIsEditingUsername(v => !v)}
+              style={editToggleStyle}
+            >
+              {isEditingUsername ? 'Done' : 'Edit'}
+            </button>
           </div>
+          <label htmlFor="username" style={labelStyle}>Username</label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            placeholder="Choose your username"
+            autoComplete="username"
+            disabled={!isEditingUsername}
+            style={isEditingUsername ? activeInputStyle : lockedInputStyle}
+            onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
+            onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; }}
+          />
         </div>
 
         {/* Occupation */}
@@ -610,61 +644,25 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => setIsEditingOccupation(v => !v)}
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '12px',
-                fontWeight: 600,
-                color: '#FBE6A6',
-                background: 'transparent',
-                border: '1px solid #FBE6A6',
-                borderRadius: '4px',
-                padding: '3px 10px',
-                cursor: 'pointer',
-                letterSpacing: '0.05em',
-              }}
+              style={editToggleStyle}
             >
               {isEditingOccupation ? 'Done' : 'Edit'}
             </button>
           </div>
-          {isEditingOccupation ? (
-            <div style={{ marginBottom: '4px' }}>
-              <label htmlFor="occupation" style={labelStyle}>Occupation</label>
-              <input
-                id="occupation"
-                name="occupation"
-                type="text"
-                value={occupation}
-                onChange={e => setOccupation(e.target.value)}
-                placeholder="e.g. Designer, Teacher, Chef..."
-                autoComplete="organization-title"
-                style={{
-                  width: '100%',
-                  height: '48px',
-                  padding: '0 16px',
-                  borderRadius: '8px',
-                  border: '2px solid #FBE6A6',
-                  backgroundColor: 'white',
-                  color: '#1a1a1a',
-                  fontSize: '16px',
-                  fontFamily: 'Inter, sans-serif',
-                  boxSizing: 'border-box' as const,
-                  outline: 'none',
-                }}
-                onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
-                onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; }}
-              />
-            </div>
-          ) : (
-            <p style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '16px',
-              color: occupation ? '#F8F4F0' : '#F8F4F0',
-              opacity: occupation ? 1 : 0.4,
-              margin: 0,
-            }}>
-              {occupation || 'Not set'}
-            </p>
-          )}
+          <label htmlFor="occupation" style={labelStyle}>Occupation</label>
+          <input
+            id="occupation"
+            name="occupation"
+            type="text"
+            value={occupation}
+            onChange={e => setOccupation(e.target.value)}
+            placeholder="e.g. Designer, Teacher, Chef..."
+            autoComplete="organization-title"
+            disabled={!isEditingOccupation}
+            style={isEditingOccupation ? activeInputStyle : lockedInputStyle}
+            onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
+            onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; }}
+          />
         </div>
 
         {/* Relationship status */}
@@ -674,41 +672,39 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => setIsEditingRelationship(v => !v)}
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '12px',
-                fontWeight: 600,
-                color: '#FBE6A6',
-                background: 'transparent',
-                border: '1px solid #FBE6A6',
-                borderRadius: '4px',
-                padding: '3px 10px',
-                cursor: 'pointer',
-                letterSpacing: '0.05em',
-              }}
+              style={editToggleStyle}
             >
               {isEditingRelationship ? 'Done' : 'Edit'}
             </button>
           </div>
-          {isEditingRelationship ? (
-            <Select
-              label="Status"
-              name="relationship_status"
-              value={relationshipStatus}
-              onChange={e => setRelationshipStatus(e.target.value)}
-              options={RELATIONSHIP_OPTIONS}
-            />
-          ) : (
-            <p style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '16px',
-              color: '#F8F4F0',
-              opacity: relationshipStatus ? 1 : 0.4,
-              margin: 0,
-            }}>
-              {relationshipStatus ? relationshipLabel : 'Not set'}
-            </p>
-          )}
+          <label htmlFor="relationship_status" style={labelStyle}>Status</label>
+          <select
+            id="relationship_status"
+            name="relationship_status"
+            value={relationshipStatus}
+            onChange={e => setRelationshipStatus(e.target.value)}
+            disabled={!isEditingRelationship}
+            style={{
+              ...(isEditingRelationship ? activeInputStyle : lockedInputStyle),
+              appearance: 'none' as const,
+              backgroundImage: isEditingRelationship
+                ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`
+                : `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 1rem center',
+              paddingRight: '2.5rem',
+            }}
+          >
+            {RELATIONSHIP_OPTIONS.map(option => (
+              <option
+                key={option.value}
+                value={option.value}
+                style={{ backgroundColor: '#460C58', color: '#F8F4F0' }}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Interests */}
