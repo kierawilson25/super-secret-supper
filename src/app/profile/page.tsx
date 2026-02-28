@@ -88,7 +88,7 @@ const lockedInputStyle: React.CSSProperties = {
   fontFamily: 'Inter, sans-serif',
   boxSizing: 'border-box' as const,
   outline: 'none',
-  cursor: 'not-allowed',
+  cursor: 'default',
 };
 
 const activeInputStyle: React.CSSProperties = {
