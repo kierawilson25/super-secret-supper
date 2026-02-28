@@ -452,6 +452,9 @@ export default function ProfilePage() {
   const occupationDoneRef = useRef(false);
   const relationshipDoneRef = useRef(false);
 
+  // Inline field errors
+  const [usernameError, setUsernameError] = useState('');
+
   // Save state
   const [isSaving, setIsSaving] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState('');
@@ -493,9 +496,10 @@ export default function ProfilePage() {
 
     const trimmedUsername = username.trim();
     if (trimmedUsername.length > 0 && trimmedUsername.length < 3) {
-      showFeedback('Username must be at least 3 characters.', true);
+      setUsernameError('Must be at least 3 characters.');
       return;
     }
+    setUsernameError('');
 
     setIsSaving(true);
     try {
@@ -632,7 +636,7 @@ export default function ProfilePage() {
             name="username"
             type="text"
             value={username}
-            onChange={e => setUsername(e.target.value)}
+            onChange={e => { setUsername(e.target.value); setUsernameError(''); }}
             placeholder="Choose your username"
             autoComplete="username"
             disabled={!isEditingUsername}
@@ -643,9 +647,21 @@ export default function ProfilePage() {
               e.target.style.boxShadow = 'none';
               if (usernameDoneRef.current) { usernameDoneRef.current = false; return; }
               setUsername(usernameSnapshot);
+              setUsernameError('');
               setIsEditingUsername(false);
             }}
           />
+          {usernameError && (
+            <p style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '12px',
+              color: '#f87171',
+              marginTop: '6px',
+              margin: '6px 0 0 0',
+            }} role="alert">
+              {usernameError}
+            </p>
+          )}
         </div>
 
         {/* Occupation */}
