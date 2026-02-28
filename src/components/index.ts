@@ -12,5 +12,6 @@ export { GroupCard } from './GroupCard';
 export { Loading } from './Loading';
 export { LoadingOverlay } from './LoadingOverlay';
 export { PageLoading } from './PageLoading';
+export { UpcomingDinnerCard } from './UpcomingDinnerCard';
 export { default as Header } from './Header';
 export { default as ErrorBoundary } from './ErrorBoundary';

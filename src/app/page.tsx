@@ -1,9 +1,29 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { PageContainer, ContentContainer, Button, Footer, PageHeader } from '@/components';
+import { PageContainer, ContentContainer, Button, Footer, PageHeader, PageLoading } from '@/components';
+import { supabase } from '@/lib/supabase';
 
 export default function HomePage() {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        router.push('/home');
+      } else {
+        setChecking(false);
+      }
+    });
+  }, [router]);
+
+  if (checking) {
+    return <PageLoading message="Loading..." />;
+  }
+
   return (
     <PageContainer>
       <ContentContainer className="pt-10">

@@ -17,7 +17,7 @@ export interface PairedMemberAvailabilityData {
   error: boolean;
 }
 
-export function usePairedMemberAvailability(groupId: string): PairedMemberAvailabilityData {
+export function usePairedMemberAvailability(groupId: string, eventId: string | null = null): PairedMemberAvailabilityData {
   const [partners, setPartners] = useState<PairedPartner[]>([]);
   const [dinnerId, setDinnerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,38 +29,74 @@ export function usePairedMemberAvailability(groupId: string): PairedMemberAvaila
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Find the current user's next upcoming dinner in this group
-        const { data: myDinnerRows } = await supabase
-          .from('peopledinner')
-          .select('dinners_dinnerid, dinners!inner(groups_groupid, dinner_date)')
-          .eq('users_userid', user.id)
-          .eq('dinners.groups_groupid', groupId)
-          .gte('dinners.dinner_date', new Date().toISOString())
-          .order('dinners.dinner_date', { ascending: true })
+        let dinnerEventId: string;
+
+        if (eventId) {
+          // Event is known (coming from pairing detail page) — use it directly
+          dinnerEventId = eventId;
+        } else {
+          // Find the current user's next accepted dinner in this group
+          const { data: myInvites } = await supabase
+            .from('dinner_invites')
+            .select('id, dinner_event_id')
+            .eq('invitee_id', user.id)
+            .eq('status', 'accepted');
+
+          if (!myInvites || myInvites.length === 0) return;
+
+          const inviteEventIds = myInvites.map(i => i.dinner_event_id as string);
+          const { data: groupEvents } = await supabase
+            .from('dinner_events')
+            .select('id, scheduled_date')
+            .eq('circle_id', groupId)
+            .gte('scheduled_date', new Date().toISOString())
+            .in('id', inviteEventIds)
+            .order('scheduled_date', { ascending: true })
+            .limit(1);
+
+          if (!groupEvents || groupEvents.length === 0) return;
+
+          dinnerEventId = groupEvents[0].id as string;
+        }
+
+        // Find the match this user belongs to for this event (flat queries)
+        const { data: eventMatches } = await supabase
+          .from('dinner_matches')
+          .select('id')
+          .eq('dinner_event_id', dinnerEventId);
+
+        if (!eventMatches || eventMatches.length === 0) return;
+
+        const eventMatchIds = eventMatches.map(m => m.id as string);
+        const { data: myGuests } = await supabase
+          .from('dinner_match_guests')
+          .select('match_id')
+          .eq('user_id', user.id)
+          .in('match_id', eventMatchIds)
           .limit(1);
 
-        if (!myDinnerRows || myDinnerRows.length === 0) return;
+        if (!myGuests || myGuests.length === 0) return;
 
-        const myDinner = myDinnerRows[0];
-        setDinnerId(myDinner.dinners_dinnerid);
+        const matchId = myGuests[0].match_id;
+        setDinnerId(matchId);
 
-        // Find the other members of that dinner
-        const { data: dinnerMembers } = await supabase
-          .from('peopledinner')
-          .select('users_userid, user_profiles:users_userid(username)')
-          .eq('dinners_dinnerid', myDinner.dinners_dinnerid)
-          .neq('users_userid', user.id);
+        // Find the other members of that match
+        const { data: matchMembers } = await supabase
+          .from('dinner_match_guests')
+          .select('user_id, user_profiles:user_id(username)')
+          .eq('match_id', matchId)
+          .neq('user_id', user.id);
 
-        if (!dinnerMembers || dinnerMembers.length === 0) return;
+        if (!matchMembers || matchMembers.length === 0) return;
 
-        const partnerIds = dinnerMembers.map(m => m.users_userid);
+        const partnerIds = matchMembers.map(m => m.user_id);
 
-        // Get their general availability slots
+        // Get partner availability slots scoped to this dinner event
         const { data: slots } = await supabase
           .from('availability_slots')
           .select('user_id, available_date, time_slot')
           .in('user_id', partnerIds)
-          .is('dinner_event_id', null);
+          .eq('dinner_event_id', dinnerEventId);
 
         const availMap: Record<string, Record<string, string[]>> = {};
         for (const slot of slots ?? []) {
@@ -70,10 +106,10 @@ export function usePairedMemberAvailability(groupId: string): PairedMemberAvaila
         }
 
         setPartners(
-          dinnerMembers.map(m => ({
-            userId: m.users_userid,
+          matchMembers.map(m => ({
+            userId: m.user_id,
             username: (m.user_profiles as { username?: string } | null)?.username ?? 'Unknown',
-            availability: availMap[m.users_userid] ?? {},
+            availability: availMap[m.user_id] ?? {},
           }))
         );
       } catch {
@@ -84,7 +120,7 @@ export function usePairedMemberAvailability(groupId: string): PairedMemberAvaila
     }
 
     load();
-  }, [groupId]);
+  }, [groupId, eventId]);
 
   return { partners, dinnerId, hasPairing: partners.length > 0, loading, error };
 }

@@ -8,6 +8,9 @@ export { useGroupAdmin } from './useGroupAdmin';
 export { useJoinGroup } from './useJoinGroup';
 export { useAvailability } from './useAvailability';
 export { usePairedMemberAvailability } from './usePairedMemberAvailability';
+export { useUpcomingDinners } from './useUpcomingDinners';
+export { usePairingResponse } from './usePairingResponse';
+export { usePairingDetail } from './usePairingDetail';
 
 export type { Profile } from './useProfile';
 export type { AvailabilityMap, MemberAvailabilitySummary, TimeSlot } from './useAvailability';
@@ -17,3 +20,5 @@ export type { GroupMember } from './useMembers';
 export type { PairResult } from './usePairings';
 export type { InviteLink } from './useInviteLinks';
 export type { PairingHistoryItem } from './usePairingHistory';
+export type { UpcomingDinner } from './useUpcomingDinners';
+export type { PairingDetailData } from './usePairingDetail';
