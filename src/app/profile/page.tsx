@@ -646,15 +646,35 @@ export default function ProfilePage() {
             }}
           />
           {usernameError && (
-            <p style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '12px',
-              color: '#f87171',
-              marginTop: '6px',
-              margin: '6px 0 0 0',
-            }} role="alert">
-              {usernameError}
-            </p>
+            <div role="alert" style={{ position: 'relative', marginTop: '8px' }}>
+              {/* Arrow pointing up */}
+              <div style={{
+                position: 'absolute',
+                top: '-6px',
+                left: '16px',
+                width: 0,
+                height: 0,
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderBottom: '6px solid #f87171',
+              }} />
+              <div style={{
+                backgroundColor: '#1a0505',
+                border: '1px solid #f87171',
+                borderRadius: '6px',
+                padding: '8px 12px',
+              }}>
+                <p style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '13px',
+                  color: '#f87171',
+                  margin: 0,
+                  fontWeight: 500,
+                }}>
+                  {usernameError}
+                </p>
+              </div>
+            </div>
           )}
         </div>
 
