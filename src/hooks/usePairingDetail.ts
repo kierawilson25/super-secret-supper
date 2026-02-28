@@ -44,27 +44,25 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
           return;
         }
 
-        // Fetch the event with group info
+        // 1. Fetch the event
         const { data: event, error: eventError } = await supabase
           .from('dinner_events')
-          .select(`
-            id,
-            scheduled_date,
-            circle_id,
-            groups!inner(
-              groupid,
-              groupname,
-              dinner_cadence
-            )
-          `)
+          .select('id, scheduled_date, circle_id')
           .eq('id', eventId)
           .single();
 
         if (eventError) throw eventError;
 
-        const group = event.groups as unknown as { groupid: string; groupname: string; dinner_cadence: string };
+        // 2. Fetch the group separately
+        const { data: group, error: groupError } = await supabase
+          .from('groups')
+          .select('groupid, groupname, dinner_cadence')
+          .eq('groupid', event.circle_id)
+          .single();
 
-        // Fetch the user's invite for this event
+        if (groupError) throw groupError;
+
+        // 3. Fetch the user's invite for this event
         const { data: invite, error: inviteError } = await supabase
           .from('dinner_invites')
           .select('id, status')
@@ -82,55 +80,71 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
         let partnerHasSetAvailability: boolean | null = null;
 
         if (isAccepted) {
-          // Find the user's match for this event
-          const { data: myGuests } = await supabase
-            .from('dinner_match_guests')
-            .select(`
-              match_id,
-              dinner_matches!inner(
-                dinner_event_id,
-                location_id,
-                dinner_locations:location_id(locationname, locationcity)
-              )
-            `)
-            .eq('user_id', user.id)
-            .eq('dinner_matches.dinner_event_id', eventId)
-            .limit(1);
+          // 4. Find all matches for this event, then find which one has this user
+          const { data: eventMatches } = await supabase
+            .from('dinner_matches')
+            .select('id, location_id')
+            .eq('dinner_event_id', eventId);
 
-          if (myGuests && myGuests.length > 0) {
-            const myGuest = myGuests[0];
-            const matchData = myGuest.dinner_matches as unknown as {
-              dinner_event_id: string;
-              location_id: string | null;
-              dinner_locations: { locationname?: string; locationcity?: string } | null;
-            };
+          if (eventMatches && eventMatches.length > 0) {
+            const matchIds = eventMatches.map(m => m.id as string);
 
-            if (matchData.dinner_locations) {
-              location = {
-                locationName: matchData.dinner_locations.locationname ?? '',
-                locationCity: matchData.dinner_locations.locationcity ?? '',
-              };
-            }
-
-            // Find partner
-            const { data: partnerGuests } = await supabase
+            const { data: myMatchGuest } = await supabase
               .from('dinner_match_guests')
-              .select('user_id, user_profiles:user_id(userid, username)')
-              .eq('match_id', myGuest.match_id)
-              .neq('user_id', user.id)
+              .select('match_id')
+              .eq('user_id', user.id)
+              .in('match_id', matchIds)
               .limit(1);
 
-            if (partnerGuests && partnerGuests.length > 0) {
-              const pg = partnerGuests[0];
-              const profile = pg.user_profiles as { userid?: string; username?: string } | null;
-              partner = {
-                userid: pg.user_id,
-                username: profile?.username ?? 'Unknown',
-              };
+            if (myMatchGuest && myMatchGuest.length > 0) {
+              const matchId = myMatchGuest[0].match_id as string;
+              const match = eventMatches.find(m => m.id === matchId);
+
+              // 5. Fetch location if assigned
+              if (match?.location_id) {
+                const { data: loc } = await supabase
+                  .from('dinner_locations')
+                  .select('locationname, locationcity')
+                  .eq('locationid', match.location_id)
+                  .single();
+
+                if (loc) {
+                  location = {
+                    locationName: (loc.locationname as string | null) ?? '',
+                    locationCity: (loc.locationcity as string | null) ?? '',
+                  };
+                }
+              }
+
+              // 6. Find partner's user_id
+              const { data: partnerGuest } = await supabase
+                .from('dinner_match_guests')
+                .select('user_id')
+                .eq('match_id', matchId)
+                .neq('user_id', user.id)
+                .limit(1);
+
+              if (partnerGuest && partnerGuest.length > 0) {
+                const partnerId = partnerGuest[0].user_id as string;
+
+                // 7. Fetch partner profile
+                const { data: partnerProfile } = await supabase
+                  .from('user_profiles')
+                  .select('userid, username')
+                  .eq('userid', partnerId)
+                  .single();
+
+                if (partnerProfile) {
+                  partner = {
+                    userid: partnerProfile.userid as string,
+                    username: (partnerProfile.username as string | null) ?? 'Unknown',
+                  };
+                }
+              }
             }
           }
 
-          // Check availability
+          // 8. Check availability
           const { data: mySlots } = await supabase
             .from('availability_slots')
             .select('id')
@@ -155,9 +169,9 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
         setDetail({
           inviteId: invite.id,
           inviteStatus: invite.status as 'pending' | 'accepted' | 'declined',
-          scheduledDate: event.scheduled_date,
-          groupName: group.groupname,
-          groupId: group.groupid,
+          scheduledDate: event.scheduled_date as string | null,
+          groupName: group.groupname as string | null,
+          groupId: group.groupid as string,
           cadence: group.dinner_cadence as 'monthly' | 'biweekly' | 'quarterly',
           partner,
           location,

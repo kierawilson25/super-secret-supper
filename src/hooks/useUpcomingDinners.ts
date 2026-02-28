@@ -34,86 +34,100 @@ export function useUpcomingDinners(refreshKey?: number) {
           return;
         }
 
-        // Fetch non-declined invites for this user with event and group info
+        // 1. Fetch non-declined invites
         const { data: invites, error: invitesError } = await supabase
           .from('dinner_invites')
-          .select(`
-            id,
-            status,
-            dinner_event_id,
-            dinner_events!inner(
-              id,
-              scheduled_date,
-              circle_id,
-              groups!inner(
-                groupid,
-                groupname,
-                dinner_cadence
-              )
-            )
-          `)
+          .select('id, status, dinner_event_id')
           .eq('user_id', user.id)
           .neq('status', 'declined');
 
         if (invitesError) throw invitesError;
-
         if (!invites || invites.length === 0) {
           setDinners([]);
           setLoading(false);
           return;
         }
 
-        // For accepted invites, find partner and availability
+        // 2. Fetch events
+        const eventIds = invites.map(i => i.dinner_event_id as string);
+        const { data: events, error: eventsError } = await supabase
+          .from('dinner_events')
+          .select('id, scheduled_date, circle_id')
+          .in('id', eventIds);
+
+        if (eventsError) throw eventsError;
+
+        // 3. Fetch groups
+        const circleIds = [...new Set((events ?? []).map(e => e.circle_id as string))];
+        const { data: groupRows, error: groupsError } = await supabase
+          .from('groups')
+          .select('groupid, groupname, dinner_cadence')
+          .in('groupid', circleIds);
+
+        if (groupsError) throw groupsError;
+
+        const eventMap = Object.fromEntries((events ?? []).map(e => [e.id as string, e]));
+        const groupMap = Object.fromEntries((groupRows ?? []).map(g => [g.groupid as string, g]));
+
+        // 4. Build each UpcomingDinner
         const results: UpcomingDinner[] = await Promise.all(
           invites.map(async (invite) => {
-            const event = invite.dinner_events as unknown as {
-              id: string;
-              scheduled_date: string | null;
-              circle_id: string;
-              groups: { groupid: string; groupname: string; dinner_cadence: string };
-            };
-            const group = event.groups;
+            const event = eventMap[invite.dinner_event_id as string];
+            const group = event ? groupMap[event.circle_id as string] : null;
 
             const isAccepted = invite.status === 'accepted';
-
             let partner: { userid: string; username: string } | null = null;
             let userHasSetAvailability = false;
             let partnerHasSetAvailability: boolean | null = null;
 
             if (isAccepted) {
-              // Find which match this user belongs to for this event
-              const { data: myGuests } = await supabase
-                .from('dinner_match_guests')
-                .select(`
-                  match_id,
-                  dinner_matches!inner(dinner_event_id)
-                `)
-                .eq('user_id', user.id)
-                .eq('dinner_matches.dinner_event_id', invite.dinner_event_id)
-                .limit(1);
+              // Find all matches for this event, then check which one has this user
+              const { data: eventMatches } = await supabase
+                .from('dinner_matches')
+                .select('id')
+                .eq('dinner_event_id', invite.dinner_event_id);
 
-              if (myGuests && myGuests.length > 0) {
-                const matchId = myGuests[0].match_id;
+              if (eventMatches && eventMatches.length > 0) {
+                const matchIds = eventMatches.map(m => m.id as string);
 
-                // Find partner in the same match
-                const { data: partnerGuests } = await supabase
+                const { data: myMatchGuest } = await supabase
                   .from('dinner_match_guests')
-                  .select('user_id, user_profiles:user_id(userid, username)')
-                  .eq('match_id', matchId)
-                  .neq('user_id', user.id)
+                  .select('match_id')
+                  .eq('user_id', user.id)
+                  .in('match_id', matchIds)
                   .limit(1);
 
-                if (partnerGuests && partnerGuests.length > 0) {
-                  const pg = partnerGuests[0];
-                  const profile = pg.user_profiles as { userid?: string; username?: string } | null;
-                  partner = {
-                    userid: pg.user_id,
-                    username: profile?.username ?? 'Unknown',
-                  };
+                if (myMatchGuest && myMatchGuest.length > 0) {
+                  const matchId = myMatchGuest[0].match_id as string;
+
+                  // Find partner's user_id
+                  const { data: partnerGuest } = await supabase
+                    .from('dinner_match_guests')
+                    .select('user_id')
+                    .eq('match_id', matchId)
+                    .neq('user_id', user.id)
+                    .limit(1);
+
+                  if (partnerGuest && partnerGuest.length > 0) {
+                    const partnerId = partnerGuest[0].user_id as string;
+
+                    const { data: partnerProfile } = await supabase
+                      .from('user_profiles')
+                      .select('userid, username')
+                      .eq('userid', partnerId)
+                      .single();
+
+                    if (partnerProfile) {
+                      partner = {
+                        userid: partnerProfile.userid as string,
+                        username: (partnerProfile.username as string | null) ?? 'Unknown',
+                      };
+                    }
+                  }
                 }
               }
 
-              // Check user's availability for this event
+              // Check user's availability
               const { data: mySlots } = await supabase
                 .from('availability_slots')
                 .select('id')
@@ -123,7 +137,6 @@ export function useUpcomingDinners(refreshKey?: number) {
 
               userHasSetAvailability = (mySlots?.length ?? 0) > 0;
 
-              // Check partner's availability
               if (partner) {
                 const { data: partnerSlots } = await supabase
                   .from('availability_slots')
@@ -137,13 +150,13 @@ export function useUpcomingDinners(refreshKey?: number) {
             }
 
             return {
-              inviteId: invite.id,
-              eventId: invite.dinner_event_id,
+              inviteId: invite.id as string,
+              eventId: invite.dinner_event_id as string,
               inviteStatus: invite.status as 'pending' | 'accepted' | 'declined',
-              scheduledDate: event.scheduled_date,
-              groupName: group.groupname,
-              groupId: group.groupid,
-              cadence: group.dinner_cadence as 'monthly' | 'biweekly' | 'quarterly',
+              scheduledDate: (event?.scheduled_date as string | null) ?? null,
+              groupName: (group?.groupname as string | null) ?? '',
+              groupId: (group?.groupid as string | null) ?? '',
+              cadence: ((group?.dinner_cadence as string | null) ?? 'monthly') as 'monthly' | 'biweekly' | 'quarterly',
               partner,
               userHasSetAvailability,
               partnerHasSetAvailability,
