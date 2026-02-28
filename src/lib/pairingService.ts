@@ -93,22 +93,37 @@ export async function generatePairsForGroup(groupId: string): Promise<PairResult
       city: groupCity || 'all cities'
     });
 
-    // Step 4: Get pairing history from new tables
-    const { data: history, error: historyError } = await supabase
-      .from('dinner_match_guests')
-      .select(`
-        user_id,
-        match_id,
-        dinner_matches!inner(
-          id,
-          dinner_event_id,
-          dinner_events!inner(circle_id)
-        )
-      `)
-      .eq('dinner_matches.dinner_events.circle_id', groupId);
+    // Step 4: Get pairing history from new tables (flat queries — no nested joins)
+    const { data: groupEvents } = await supabase
+      .from('dinner_events')
+      .select('id')
+      .eq('circle_id', groupId);
+
+    let history: { user_id: string; match_id: string }[] | null = null;
+    let historyError = null;
+
+    if (groupEvents && groupEvents.length > 0) {
+      const groupEventIds = groupEvents.map(e => e.id as string);
+
+      const { data: groupMatches } = await supabase
+        .from('dinner_matches')
+        .select('id')
+        .in('dinner_event_id', groupEventIds);
+
+      if (groupMatches && groupMatches.length > 0) {
+        const groupMatchIds = groupMatches.map(m => m.id as string);
+        const { data: guests, error: guestsError } = await supabase
+          .from('dinner_match_guests')
+          .select('user_id, match_id')
+          .in('match_id', groupMatchIds);
+
+        history = guests as { user_id: string; match_id: string }[] | null;
+        historyError = guestsError;
+      }
+    }
 
     if (historyError) {
-      logger.warn('Failed to fetch pairing history', { groupId, errorMessage: historyError.message });
+      logger.warn('Failed to fetch pairing history', { groupId, errorMessage: (historyError as { message: string }).message });
     }
 
     logger.info('Retrieved pairing history', { groupId, historyCount: history?.length || 0 });
