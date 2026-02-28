@@ -27,73 +27,99 @@ export function usePairingHistory(groupId: string, userId?: string | null) {
         setLoading(true);
         setError(null);
 
-        // Fetch all dinners for this group with location info
-        const { data: dinners, error: dinnersError } = await supabase
-          .from('dinners')
-          .select(`
-            dinnerid,
-            dinner_date,
-            dinner_locations:dinner_locations_locationid (
-              locationname,
-              locationcity
-            )
-          `)
-          .eq('groups_groupid', groupId)
-          .order('dinner_date', { ascending: false });
+        // Fetch all dinner_events for this group
+        const { data: events, error: eventsError } = await supabase
+          .from('dinner_events')
+          .select('id, scheduled_date')
+          .eq('circle_id', groupId)
+          .order('scheduled_date', { ascending: false });
 
-        if (dinnersError) throw dinnersError;
+        if (eventsError) throw eventsError;
 
-        if (!dinners || dinners.length === 0) {
+        if (!events || events.length === 0) {
           setPairings([]);
           setLoading(false);
           return;
         }
 
-        // For each dinner, fetch the attendees
-        const pairingsWithAttendees = await Promise.all(
-          dinners.map(async (dinner) => {
-            const { data: attendees, error: attendeesError } = await supabase
-              .from('peopledinner')
-              .select(`
-                users_userid,
-                user_profiles:users_userid (
-                  userid,
-                  username
-                )
-              `)
-              .eq('dinners_dinnerid', dinner.dinnerid);
+        const eventIds = events.map(e => e.id);
 
-            if (attendeesError) {
-              console.error('Error fetching attendees:', attendeesError);
-              return null;
-            }
+        // Fetch all matches for these events (with location info)
+        const { data: matches, error: matchesError } = await supabase
+          .from('dinner_matches')
+          .select(`
+            id,
+            dinner_event_id,
+            location_id,
+            dinner_locations:location_id (
+              locationname,
+              locationcity
+            )
+          `)
+          .in('dinner_event_id', eventIds);
 
-            return {
-              dinnerID: dinner.dinnerid,
-              dinnerDate: dinner.dinner_date,
-              location: dinner.dinner_locations ? {
-                locationName: (dinner.dinner_locations as any).locationname,
-                locationCity: (dinner.dinner_locations as any).locationcity
-              } : undefined,
-              attendees: attendees?.map(a => ({
-                userid: a.users_userid,
-                username: (a.user_profiles as any)?.username || 'Unknown'
-              })) || []
-            };
-          })
-        );
+        if (matchesError) throw matchesError;
 
-        // Filter out any null results
-        let validPairings = pairingsWithAttendees.filter(p => p !== null) as PairingHistoryItem[];
+        if (!matches || matches.length === 0) {
+          setPairings([]);
+          setLoading(false);
+          return;
+        }
 
-        // If userId is provided, filter to only show pairings where userId is an attendee
+        const matchIds = matches.map(m => m.id);
+
+        // Fetch all guests for these matches
+        const { data: guests, error: guestsError } = await supabase
+          .from('dinner_match_guests')
+          .select(`
+            match_id,
+            user_id,
+            user_profiles:user_id (
+              userid,
+              username
+            )
+          `)
+          .in('match_id', matchIds);
+
+        if (guestsError) throw guestsError;
+
+        // Build a map of matchId → guests
+        const guestsByMatch = new Map<string, { userid: string; username: string }[]>();
+        guests?.forEach(g => {
+          if (!guestsByMatch.has(g.match_id)) {
+            guestsByMatch.set(g.match_id, []);
+          }
+          guestsByMatch.get(g.match_id)!.push({
+            userid: g.user_id,
+            username: (g.user_profiles as { username?: string } | null)?.username ?? 'Unknown'
+          });
+        });
+
+        // Build a map of eventId → scheduledDate
+        const dateByEvent = new Map<string, string>();
+        events.forEach(e => dateByEvent.set(e.id, e.scheduled_date));
+
+        // Assemble PairingHistoryItems — one per match
+        let result: PairingHistoryItem[] = matches.map(match => ({
+          dinnerID: match.id,
+          dinnerDate: dateByEvent.get(match.dinner_event_id) ?? '',
+          location: match.dinner_locations
+            ? {
+                locationName: (match.dinner_locations as { locationname?: string }).locationname ?? '',
+                locationCity: (match.dinner_locations as { locationcity?: string }).locationcity ?? '',
+              }
+            : undefined,
+          attendees: guestsByMatch.get(match.id) ?? [],
+        }));
+
+        // If userId is provided, filter to only pairings where user is an attendee
         if (userId) {
-          validPairings = validPairings.filter(pairing =>
-            pairing.attendees.some(attendee => attendee.userid === userId)
+          result = result.filter(p =>
+            p.attendees.some(a => a.userid === userId)
           );
         }
 
-        setPairings(validPairings);
+        setPairings(result);
         setLoading(false);
 
       } catch (err) {

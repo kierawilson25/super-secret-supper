@@ -29,31 +29,52 @@ export function usePairedMemberAvailability(groupId: string): PairedMemberAvaila
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Find the current user's next upcoming dinner in this group
-        const { data: myDinnerRows } = await supabase
-          .from('peopledinner')
-          .select('dinners_dinnerid, dinners!inner(groups_groupid, dinner_date)')
-          .eq('users_userid', user.id)
-          .eq('dinners.groups_groupid', groupId)
-          .gte('dinners.dinner_date', new Date().toISOString())
-          .order('dinners.dinner_date', { ascending: true })
+        // Find the current user's next upcoming accepted dinner_invite in this group
+        const { data: myInvites } = await supabase
+          .from('dinner_invites')
+          .select(`
+            id,
+            dinner_event_id,
+            dinner_events!inner(circle_id, scheduled_date)
+          `)
+          .eq('user_id', user.id)
+          .eq('status', 'accepted')
+          .eq('dinner_events.circle_id', groupId)
+          .gte('dinner_events.scheduled_date', new Date().toISOString())
+          .order('dinner_events.scheduled_date', { ascending: true })
           .limit(1);
 
-        if (!myDinnerRows || myDinnerRows.length === 0) return;
+        if (!myInvites || myInvites.length === 0) return;
 
-        const myDinner = myDinnerRows[0];
-        setDinnerId(myDinner.dinners_dinnerid);
+        const myInvite = myInvites[0];
+        const dinnerEventId = myInvite.dinner_event_id;
 
-        // Find the other members of that dinner
-        const { data: dinnerMembers } = await supabase
-          .from('peopledinner')
-          .select('users_userid, user_profiles:users_userid(username)')
-          .eq('dinners_dinnerid', myDinner.dinners_dinnerid)
-          .neq('users_userid', user.id);
+        // Find the match this user belongs to for this event
+        const { data: myGuests } = await supabase
+          .from('dinner_match_guests')
+          .select(`
+            match_id,
+            dinner_matches!inner(dinner_event_id)
+          `)
+          .eq('user_id', user.id)
+          .eq('dinner_matches.dinner_event_id', dinnerEventId)
+          .limit(1);
 
-        if (!dinnerMembers || dinnerMembers.length === 0) return;
+        if (!myGuests || myGuests.length === 0) return;
 
-        const partnerIds = dinnerMembers.map(m => m.users_userid);
+        const matchId = myGuests[0].match_id;
+        setDinnerId(matchId);
+
+        // Find the other members of that match
+        const { data: matchMembers } = await supabase
+          .from('dinner_match_guests')
+          .select('user_id, user_profiles:user_id(username)')
+          .eq('match_id', matchId)
+          .neq('user_id', user.id);
+
+        if (!matchMembers || matchMembers.length === 0) return;
+
+        const partnerIds = matchMembers.map(m => m.user_id);
 
         // Get their general availability slots
         const { data: slots } = await supabase
@@ -70,10 +91,10 @@ export function usePairedMemberAvailability(groupId: string): PairedMemberAvaila
         }
 
         setPartners(
-          dinnerMembers.map(m => ({
-            userId: m.users_userid,
+          matchMembers.map(m => ({
+            userId: m.user_id,
             username: (m.user_profiles as { username?: string } | null)?.username ?? 'Unknown',
-            availability: availMap[m.users_userid] ?? {},
+            availability: availMap[m.user_id] ?? {},
           }))
         );
       } catch {
