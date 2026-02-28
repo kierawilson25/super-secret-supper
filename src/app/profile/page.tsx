@@ -129,12 +129,12 @@ function AvatarSection({ username, avatarUrl, onAvatarChange, userId }: AvatarSe
       const ext = file.name.split('.').pop();
       const path = `${userId}/avatar.${ext}`;
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from('profile-photos')
         .upload(path, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+      const { data } = supabase.storage.from('profile-photos').getPublicUrl(path);
       onAvatarChange(data.publicUrl);
     } catch (err) {
       console.error('Avatar upload failed:', err);
