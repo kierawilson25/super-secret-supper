@@ -20,6 +20,35 @@ const INTEREST_OPTIONS = [
   'Tech', 'Fashion', 'Sports', 'Gaming', 'Photography',
 ];
 
+const OCCUPATION_OPTIONS = [
+  { value: '', label: 'Select occupation...' },
+  { value: 'Accountant / Finance', label: 'Accountant / Finance' },
+  { value: 'Artist / Creative', label: 'Artist / Creative' },
+  { value: 'Chef / Culinary', label: 'Chef / Culinary' },
+  { value: 'Consultant', label: 'Consultant' },
+  { value: 'Designer', label: 'Designer' },
+  { value: 'Doctor / Healthcare', label: 'Doctor / Healthcare' },
+  { value: 'Education / Teacher', label: 'Education / Teacher' },
+  { value: 'Engineer', label: 'Engineer' },
+  { value: 'Entrepreneur', label: 'Entrepreneur' },
+  { value: 'Fitness / Wellness', label: 'Fitness / Wellness' },
+  { value: 'Government / Policy', label: 'Government / Policy' },
+  { value: 'Lawyer / Legal', label: 'Lawyer / Legal' },
+  { value: 'Marketing', label: 'Marketing' },
+  { value: 'Nonprofit / Social Impact', label: 'Nonprofit / Social Impact' },
+  { value: 'Photographer', label: 'Photographer' },
+  { value: 'Real Estate', label: 'Real Estate' },
+  { value: 'Researcher / Scientist', label: 'Researcher / Scientist' },
+  { value: 'Software / Tech', label: 'Software / Tech' },
+  { value: 'Student', label: 'Student' },
+  { value: 'Writer / Journalist', label: 'Writer / Journalist' },
+  { value: 'other', label: 'Other...' },
+];
+
+const OCCUPATION_PRESET_VALUES = OCCUPATION_OPTIONS
+  .filter(o => o.value !== '' && o.value !== 'other')
+  .map(o => o.value);
+
 const RELATIONSHIP_OPTIONS = [
   { value: '', label: 'Select status...' },
   { value: 'single', label: 'Single' },
@@ -111,10 +140,11 @@ interface AvatarSectionProps {
   username: string;
   avatarUrl: string | null;
   onAvatarChange: (url: string) => void;
+  onUploadError: (msg: string) => void;
   userId: string;
 }
 
-function AvatarSection({ username, avatarUrl, onAvatarChange, userId }: AvatarSectionProps) {
+function AvatarSection({ username, avatarUrl, onAvatarChange, onUploadError, userId }: AvatarSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -132,12 +162,19 @@ function AvatarSection({ username, avatarUrl, onAvatarChange, userId }: AvatarSe
         .from('profile-photos')
         .upload(path, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        if (uploadError.message?.toLowerCase().includes('mime type')) {
+          onUploadError('That file type is not supported. Please upload a JPEG or WebP image.');
+        } else {
+          onUploadError('Photo upload failed. Please try again.');
+        }
+        return;
+      }
 
       const { data } = supabase.storage.from('profile-photos').getPublicUrl(path);
       onAvatarChange(data.publicUrl);
     } catch (err) {
-      console.error('Avatar upload failed:', err);
+      onUploadError('Photo upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -437,7 +474,8 @@ export default function ProfilePage() {
   const [profilePhotoPath, setProfilePhotoPath] = useState<string | null>(null);
   const [interests, setInterests] = useState<string[]>([]);
   const [relationshipStatus, setRelationshipStatus] = useState('');
-  const [occupation, setOccupation] = useState('');
+  const [occupationSelect, setOccupationSelect] = useState('');
+  const [occupationCustom, setOccupationCustom] = useState('');
 
   // Edit-lock state — all fields locked by default
   const [isEditingUsername, setIsEditingUsername] = useState(false);
@@ -446,7 +484,8 @@ export default function ProfilePage() {
 
   // Snapshots — value at the moment Edit was clicked, restored on blur-without-Done
   const [usernameSnapshot, setUsernameSnapshot] = useState('');
-  const [occupationSnapshot, setOccupationSnapshot] = useState('');
+  const [occupationSelectSnapshot, setOccupationSelectSnapshot] = useState('');
+  const [occupationCustomSnapshot, setOccupationCustomSnapshot] = useState('');
   const [relationshipSnapshot, setRelationshipSnapshot] = useState('');
 
   // Refs to detect when blur is caused by clicking Done (mousedown fires before blur)
@@ -485,7 +524,17 @@ export default function ProfilePage() {
       setProfilePhotoPath(profile.profile_photo_path ?? null);
       setInterests(profile.interests ?? []);
       setRelationshipStatus(profile.relationship_status ?? '');
-      setOccupation(profile.occupation ?? '');
+      const savedOccupation = profile.occupation ?? '';
+      if (OCCUPATION_PRESET_VALUES.includes(savedOccupation)) {
+        setOccupationSelect(savedOccupation);
+        setOccupationCustom('');
+      } else if (savedOccupation) {
+        setOccupationSelect('other');
+        setOccupationCustom(savedOccupation);
+      } else {
+        setOccupationSelect('');
+        setOccupationCustom('');
+      }
     }
   }, [profile]);
 
@@ -512,7 +561,9 @@ export default function ProfilePage() {
         profile_photo_path: profilePhotoPath,
         interests,
         relationship_status: relationshipStatus || null,
-        occupation: occupation.trim() || null,
+        occupation: occupationSelect === 'other'
+          ? (occupationCustom.trim() || null)
+          : (occupationSelect || null),
       });
       showFeedback('Profile saved successfully!', false);
     } catch {
@@ -578,6 +629,7 @@ export default function ProfilePage() {
             username={username}
             avatarUrl={profilePhotoPath}
             onAvatarChange={setProfilePhotoPath}
+            onUploadError={(msg) => showFeedback(msg, true)}
             userId={currentUserId}
           />
         )}
@@ -683,47 +735,104 @@ export default function ProfilePage() {
         </div>
 
         {/* Occupation */}
-        <div style={sectionCard}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <p style={{ ...sectionHeading, marginBottom: 0 }}>What You Do</p>
-            <button
-              type="button"
-              onMouseDown={() => { occupationDoneRef.current = true; }}
-              onClick={() => {
-                if (isEditingOccupation) {
-                  setIsEditingOccupation(false);
-                } else {
-                  setOccupationSnapshot(occupation);
-                  setIsEditingOccupation(true);
-                }
-              }}
-              style={editToggleStyle}
-            >
-              {isEditingOccupation ? 'Done' : 'Edit'}
-            </button>
-          </div>
-          <label htmlFor="occupation" style={labelStyle}>Occupation</label>
-          <input
-            id="occupation"
-            name="occupation"
-            type="text"
-            value={occupation}
-            onChange={e => setOccupation(e.target.value)}
-            placeholder="e.g. Designer, Teacher, Chef..."
-            autoComplete="organization-title"
-            disabled={!isEditingOccupation}
-            style={isEditingOccupation ? activeInputStyle : lockedInputStyle}
-            onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
-            onBlur={e => {
-              e.target.style.borderColor = '#FBE6A6';
-              e.target.style.boxShadow = 'none';
-              if (occupationDoneRef.current) { occupationDoneRef.current = false; return; }
-              if (saveClickedRef.current) return;
-              setOccupation(occupationSnapshot);
-              setIsEditingOccupation(false);
-            }}
-          />
-        </div>
+        {(() => {
+          const occupationDisplay = occupationSelect === 'other' ? occupationCustom : occupationSelect;
+          const selectBlur = (e: React.FocusEvent) => {
+            // Don't revert if focus moved to the custom text input
+            const related = e.relatedTarget as HTMLElement | null;
+            if (related && related.id === 'occupation-custom') return;
+            if (occupationDoneRef.current) { occupationDoneRef.current = false; return; }
+            if (saveClickedRef.current) return;
+            setOccupationSelect(occupationSelectSnapshot);
+            setOccupationCustom(occupationCustomSnapshot);
+            setIsEditingOccupation(false);
+          };
+          const customBlur = () => {
+            if (occupationDoneRef.current) { occupationDoneRef.current = false; return; }
+            if (saveClickedRef.current) return;
+            setOccupationSelect(occupationSelectSnapshot);
+            setOccupationCustom(occupationCustomSnapshot);
+            setIsEditingOccupation(false);
+          };
+          return (
+            <div style={sectionCard}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <p style={{ ...sectionHeading, marginBottom: 0 }}>What You Do</p>
+                <button
+                  type="button"
+                  onMouseDown={() => { occupationDoneRef.current = true; }}
+                  onClick={() => {
+                    if (isEditingOccupation) {
+                      setIsEditingOccupation(false);
+                    } else {
+                      setOccupationSelectSnapshot(occupationSelect);
+                      setOccupationCustomSnapshot(occupationCustom);
+                      setIsEditingOccupation(true);
+                    }
+                  }}
+                  style={editToggleStyle}
+                >
+                  {isEditingOccupation ? 'Done' : 'Edit'}
+                </button>
+              </div>
+              <label htmlFor="occupation-select" style={labelStyle}>Occupation</label>
+              <select
+                id="occupation-select"
+                disabled={!isEditingOccupation}
+                value={isEditingOccupation ? occupationSelect : (occupationDisplay ? (OCCUPATION_PRESET_VALUES.includes(occupationDisplay) ? occupationDisplay : 'other') : '')}
+                onChange={e => {
+                  setOccupationSelect(e.target.value);
+                  if (e.target.value !== 'other') setOccupationCustom('');
+                }}
+                style={{
+                  ...(isEditingOccupation ? activeInputStyle : lockedInputStyle),
+                  appearance: 'none' as const,
+                  backgroundImage: isEditingOccupation
+                    ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`
+                    : `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 1rem center',
+                  paddingRight: '2.5rem',
+                  marginBottom: occupationSelect === 'other' && isEditingOccupation ? '12px' : 0,
+                }}
+                onBlur={selectBlur}
+              >
+                {OCCUPATION_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value} style={{ backgroundColor: '#460C58', color: '#F8F4F0' }}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              {occupationSelect === 'other' && isEditingOccupation && (
+                <>
+                  <label htmlFor="occupation-custom" style={{ ...labelStyle, marginTop: '4px' }}>Describe your role</label>
+                  <input
+                    id="occupation-custom"
+                    type="text"
+                    value={occupationCustom}
+                    onChange={e => setOccupationCustom(e.target.value)}
+                    placeholder="e.g. Yoga instructor, freelance writer..."
+                    autoComplete="organization-title"
+                    style={activeInputStyle}
+                    onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
+                    onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; customBlur(); }}
+                  />
+                </>
+              )}
+              {/* When locked and "other" was chosen, show the custom text in a locked input */}
+              {occupationSelect === 'other' && !isEditingOccupation && occupationCustom && (
+                <input
+                  id="occupation-custom"
+                  type="text"
+                  value={occupationCustom}
+                  disabled
+                  style={{ ...lockedInputStyle, marginTop: '12px' }}
+                  readOnly
+                />
+              )}
+            </div>
+          );
+        })()}
 
         {/* Relationship status */}
         <div style={sectionCard}>
