@@ -31,6 +31,10 @@ export async function generatePairsForGroup(groupId: string): Promise<PairResult
   try {
     logger.info('Starting pairing algorithm', { groupId });
 
+    // Step 0: Get the current user (needed for host_id on dinner_events)
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) throw new Error('Not authenticated');
+
     // Step 1: Get group details to find the city
     const { data: groupData, error: groupError } = await supabase
       .from('groups')
@@ -159,7 +163,10 @@ export async function generatePairsForGroup(groupId: string): Promise<PairResult
       .from('dinner_events')
       .insert({
         circle_id: groupId,
+        host_id: currentUser.id,
+        title: 'Secret Dinner',
         scheduled_date: dinnerDate.toISOString(),
+        status: 'pairing',
       })
       .select('id')
       .single();
@@ -244,7 +251,7 @@ export async function generatePairsForGroup(groupId: string): Promise<PairResult
           .from('dinner_invites')
           .insert(pairMembers.map(p => ({
             dinner_event_id: dinnerEventId,
-            user_id: p.userid,
+            invitee_id: p.userid,
             status: 'pending',
           })));
 
@@ -281,7 +288,7 @@ export async function generatePairsForGroup(groupId: string): Promise<PairResult
         .from('dinner_invites')
         .insert({
           dinner_event_id: dinnerEventId,
-          user_id: unpaired[0].userid,
+          invitee_id: unpaired[0].userid,
           status: 'pending',
         });
 

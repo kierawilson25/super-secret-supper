@@ -141,7 +141,7 @@ CREATE POLICY "Users can view own dinner invites"
   ON public.dinner_invites
   FOR SELECT
   USING (
-    user_id = auth.uid()
+    invitee_id = auth.uid()
     OR EXISTS (
       SELECT 1 FROM public.dinner_events de
       JOIN public.groups g ON g.groupid = de.circle_id
@@ -169,5 +169,5 @@ DROP POLICY IF EXISTS "Users can respond to own dinner invites" ON public.dinner
 CREATE POLICY "Users can respond to own dinner invites"
   ON public.dinner_invites
   FOR UPDATE
-  USING (user_id = auth.uid())
-  WITH CHECK (user_id = auth.uid());
+  USING (invitee_id = auth.uid())
+  WITH CHECK (invitee_id = auth.uid());

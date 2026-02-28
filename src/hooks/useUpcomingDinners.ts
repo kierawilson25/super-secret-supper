@@ -38,7 +38,7 @@ export function useUpcomingDinners(refreshKey?: number) {
         const { data: invites, error: invitesError } = await supabase
           .from('dinner_invites')
           .select('id, status, dinner_event_id')
-          .eq('user_id', user.id)
+          .eq('invitee_id', user.id)
           .neq('status', 'declined');
 
         if (invitesError) throw invitesError;

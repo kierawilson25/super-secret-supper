@@ -67,7 +67,7 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
           .from('dinner_invites')
           .select('id, status')
           .eq('dinner_event_id', eventId)
-          .eq('user_id', user.id)
+          .eq('invitee_id', user.id)
           .single();
 
         if (inviteError) throw inviteError;

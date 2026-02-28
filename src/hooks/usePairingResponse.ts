@@ -19,7 +19,7 @@ export function usePairingResponse() {
         .from('dinner_invites')
         .update({ status: response })
         .eq('id', inviteId)
-        .eq('user_id', user.id);
+        .eq('invitee_id', user.id);
 
       if (updateError) throw updateError;
     } catch (err) {
