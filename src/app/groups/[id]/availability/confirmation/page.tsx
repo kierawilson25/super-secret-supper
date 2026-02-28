@@ -134,7 +134,7 @@ export default function AvailabilityConfirmationPage() {
           </div>
         )}
 
-        <Button onClick={() => router.push(`/groups/${groupId}/manage`)}>
+        <Button onClick={() => router.push(`/groups/${groupId}`)}>
           {c.buttons.returnToGroup}
         </Button>
         <Button variant="secondary" onClick={() => router.push(`/groups/${groupId}/availability`)}>
