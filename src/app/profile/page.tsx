@@ -538,6 +538,26 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
+  const occupationDisplay = occupationSelect === 'other' ? occupationCustom : occupationSelect;
+
+  const handleOccupationSelectBlur = (e: React.FocusEvent) => {
+    const related = e.relatedTarget as HTMLElement | null;
+    if (related && related.id === 'occupation-custom') return;
+    if (occupationDoneRef.current) { occupationDoneRef.current = false; return; }
+    if (saveClickedRef.current) return;
+    setOccupationSelect(occupationSelectSnapshot);
+    setOccupationCustom(occupationCustomSnapshot);
+    setIsEditingOccupation(false);
+  };
+
+  const handleOccupationCustomBlur = () => {
+    if (occupationDoneRef.current) { occupationDoneRef.current = false; return; }
+    if (saveClickedRef.current) return;
+    setOccupationSelect(occupationSelectSnapshot);
+    setOccupationCustom(occupationCustomSnapshot);
+    setIsEditingOccupation(false);
+  };
+
   const showFeedback = (msg: string, error = false) => {
     setFeedbackMessage(msg);
     setIsError(error);
@@ -546,6 +566,7 @@ export default function ProfilePage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    saveClickedRef.current = false; // always reset after form submission fires
 
     const trimmedUsername = username.trim();
     if (trimmedUsername.length > 0 && trimmedUsername.length < 3) {
@@ -735,27 +756,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Occupation */}
-        {(() => {
-          const occupationDisplay = occupationSelect === 'other' ? occupationCustom : occupationSelect;
-          const selectBlur = (e: React.FocusEvent) => {
-            // Don't revert if focus moved to the custom text input
-            const related = e.relatedTarget as HTMLElement | null;
-            if (related && related.id === 'occupation-custom') return;
-            if (occupationDoneRef.current) { occupationDoneRef.current = false; return; }
-            if (saveClickedRef.current) return;
-            setOccupationSelect(occupationSelectSnapshot);
-            setOccupationCustom(occupationCustomSnapshot);
-            setIsEditingOccupation(false);
-          };
-          const customBlur = () => {
-            if (occupationDoneRef.current) { occupationDoneRef.current = false; return; }
-            if (saveClickedRef.current) return;
-            setOccupationSelect(occupationSelectSnapshot);
-            setOccupationCustom(occupationCustomSnapshot);
-            setIsEditingOccupation(false);
-          };
-          return (
-            <div style={sectionCard}>
+        <div style={sectionCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <p style={{ ...sectionHeading, marginBottom: 0 }}>What You Do</p>
                 <button
@@ -795,7 +796,7 @@ export default function ProfilePage() {
                   paddingRight: '2.5rem',
                   marginBottom: occupationSelect === 'other' && isEditingOccupation ? '12px' : 0,
                 }}
-                onBlur={selectBlur}
+                onBlur={handleOccupationSelectBlur}
               >
                 {OCCUPATION_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value} style={{ backgroundColor: '#460C58', color: '#F8F4F0' }}>
@@ -815,7 +816,7 @@ export default function ProfilePage() {
                     autoComplete="organization-title"
                     style={activeInputStyle}
                     onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
-                    onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; customBlur(); }}
+                    onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; handleOccupationCustomBlur(); }}
                   />
                 </>
               )}
@@ -830,9 +831,7 @@ export default function ProfilePage() {
                   readOnly
                 />
               )}
-            </div>
-          );
-        })()}
+        </div>
 
         {/* Relationship status */}
         <div style={sectionCard}>

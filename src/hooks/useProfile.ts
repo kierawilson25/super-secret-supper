@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger';
 
 export interface Profile {
   userid: string;
-  username?: string;
+  username?: string | null;
   isadmin?: boolean;
   created_at: string;
   updated_at: string;
