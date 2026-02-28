@@ -396,6 +396,10 @@ export default function ProfilePage() {
   const [dinnerCount, setDinnerCount] = useState(0);
   const [dinnerLoading, setDinnerLoading] = useState(true);
 
+  // Edit-lock state for sensitive fields
+  const [isEditingOccupation, setIsEditingOccupation] = useState(false);
+  const [isEditingRelationship, setIsEditingRelationship] = useState(false);
+
   // Save state
   const [isSaving, setIsSaving] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState('');
@@ -512,6 +516,9 @@ export default function ProfilePage() {
     paddingBottom: '4px',
   };
 
+  const relationshipLabel =
+    RELATIONSHIP_OPTIONS.find(o => o.value === relationshipStatus)?.label || 'Not set';
+
   const memberSinceDate = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : null;
@@ -598,46 +605,110 @@ export default function ProfilePage() {
 
         {/* Occupation */}
         <div style={sectionCard}>
-          <p style={sectionHeading}>What You Do</p>
-          <div style={{ marginBottom: '4px' }}>
-            <label htmlFor="occupation" style={labelStyle}>Occupation</label>
-            <input
-              id="occupation"
-              name="occupation"
-              type="text"
-              value={occupation}
-              onChange={e => setOccupation(e.target.value)}
-              placeholder="e.g. Designer, Teacher, Chef..."
-              autoComplete="organization-title"
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <p style={{ ...sectionHeading, marginBottom: 0 }}>What You Do</p>
+            <button
+              type="button"
+              onClick={() => setIsEditingOccupation(v => !v)}
               style={{
-                width: '100%',
-                height: '48px',
-                padding: '0 16px',
-                borderRadius: '8px',
-                border: '2px solid #FBE6A6',
-                backgroundColor: 'white',
-                color: '#1a1a1a',
-                fontSize: '16px',
                 fontFamily: 'Inter, sans-serif',
-                boxSizing: 'border-box' as const,
-                outline: 'none',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#FBE6A6',
+                background: 'transparent',
+                border: '1px solid #FBE6A6',
+                borderRadius: '4px',
+                padding: '3px 10px',
+                cursor: 'pointer',
+                letterSpacing: '0.05em',
               }}
-              onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
-              onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; }}
-            />
+            >
+              {isEditingOccupation ? 'Done' : 'Edit'}
+            </button>
           </div>
+          {isEditingOccupation ? (
+            <div style={{ marginBottom: '4px' }}>
+              <label htmlFor="occupation" style={labelStyle}>Occupation</label>
+              <input
+                id="occupation"
+                name="occupation"
+                type="text"
+                value={occupation}
+                onChange={e => setOccupation(e.target.value)}
+                placeholder="e.g. Designer, Teacher, Chef..."
+                autoComplete="organization-title"
+                style={{
+                  width: '100%',
+                  height: '48px',
+                  padding: '0 16px',
+                  borderRadius: '8px',
+                  border: '2px solid #FBE6A6',
+                  backgroundColor: 'white',
+                  color: '#1a1a1a',
+                  fontSize: '16px',
+                  fontFamily: 'Inter, sans-serif',
+                  boxSizing: 'border-box' as const,
+                  outline: 'none',
+                }}
+                onFocus={e => { e.target.style.borderColor = '#CFA94A'; e.target.style.boxShadow = '0 0 0 2px rgba(207, 169, 74, 0.3)'; }}
+                onBlur={e => { e.target.style.borderColor = '#FBE6A6'; e.target.style.boxShadow = 'none'; }}
+              />
+            </div>
+          ) : (
+            <p style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '16px',
+              color: occupation ? '#F8F4F0' : '#F8F4F0',
+              opacity: occupation ? 1 : 0.4,
+              margin: 0,
+            }}>
+              {occupation || 'Not set'}
+            </p>
+          )}
         </div>
 
         {/* Relationship status */}
         <div style={sectionCard}>
-          <p style={sectionHeading}>Relationship Status</p>
-          <Select
-            label="Status"
-            name="relationship_status"
-            value={relationshipStatus}
-            onChange={e => setRelationshipStatus(e.target.value)}
-            options={RELATIONSHIP_OPTIONS}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <p style={{ ...sectionHeading, marginBottom: 0 }}>Relationship Status</p>
+            <button
+              type="button"
+              onClick={() => setIsEditingRelationship(v => !v)}
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#FBE6A6',
+                background: 'transparent',
+                border: '1px solid #FBE6A6',
+                borderRadius: '4px',
+                padding: '3px 10px',
+                cursor: 'pointer',
+                letterSpacing: '0.05em',
+              }}
+            >
+              {isEditingRelationship ? 'Done' : 'Edit'}
+            </button>
+          </div>
+          {isEditingRelationship ? (
+            <Select
+              label="Status"
+              name="relationship_status"
+              value={relationshipStatus}
+              onChange={e => setRelationshipStatus(e.target.value)}
+              options={RELATIONSHIP_OPTIONS}
+            />
+          ) : (
+            <p style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '16px',
+              color: '#F8F4F0',
+              opacity: relationshipStatus ? 1 : 0.4,
+              margin: 0,
+            }}>
+              {relationshipStatus ? relationshipLabel : 'Not set'}
+            </p>
+          )}
         </div>
 
         {/* Interests */}
