@@ -6,8 +6,12 @@ export { useInviteLinks } from './useInviteLinks';
 export { usePairingHistory } from './usePairingHistory';
 export { useGroupAdmin } from './useGroupAdmin';
 export { useJoinGroup } from './useJoinGroup';
+export { useAvailability } from './useAvailability';
+export { usePairedMemberAvailability } from './usePairedMemberAvailability';
 
 export type { Profile } from './useProfile';
+export type { AvailabilityMap, MemberAvailabilitySummary, TimeSlot } from './useAvailability';
+export type { PairedPartner, PairedMemberAvailabilityData } from './usePairedMemberAvailability';
 export type { Group } from './useGroups';
 export type { GroupMember } from './useMembers';
 export type { PairResult } from './usePairings';
