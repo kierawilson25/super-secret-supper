@@ -156,6 +156,9 @@ function AvatarSection({ username, avatarUrl, onAvatarChange, userId }: AvatarSe
     width: '96px',
     height: '96px',
     cursor: 'pointer',
+    background: 'transparent',
+    border: 'none',
+    padding: 0,
   };
 
   const avatarCircleStyle: React.CSSProperties = {
