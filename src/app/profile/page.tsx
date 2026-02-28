@@ -490,10 +490,17 @@ export default function ProfilePage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const trimmedUsername = username.trim();
+    if (trimmedUsername.length > 0 && trimmedUsername.length < 3) {
+      showFeedback('Username must be at least 3 characters.', true);
+      return;
+    }
+
     setIsSaving(true);
     try {
       await updateProfile({
-        username: username.trim(),
+        username: trimmedUsername || null,
         profile_photo_path: profilePhotoPath,
         interests,
         relationship_status: relationshipStatus || null,
