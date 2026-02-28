@@ -81,6 +81,9 @@ const lockedInputStyle: React.CSSProperties = {
   border: '2px solid rgba(251, 230, 166, 0.3)',
   backgroundColor: 'rgba(255, 255, 255, 0.04)',
   color: 'rgba(248, 244, 240, 0.45)',
+  // Prevent macOS/Safari from overriding text color on disabled elements
+  WebkitTextFillColor: 'rgba(248, 244, 240, 0.45)',
+  opacity: 1,
   fontSize: '16px',
   fontFamily: 'Inter, sans-serif',
   boxSizing: 'border-box' as const,

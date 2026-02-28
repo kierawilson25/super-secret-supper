@@ -54,10 +54,14 @@ button {
 
 input, select, textarea {
   font-family: 'Inter', sans-serif;
-  margin-top: 10;
-  margin-bottom: 10;
-  margin-left: 7;
-  margin-right: 7;
+}
+
+/* Ensure placeholder text in disabled inputs matches the locked field color,
+   overriding the browser's default grey for disabled ::placeholder. */
+input:disabled::placeholder {
+  color: rgba(248, 244, 240, 0.45);
+  -webkit-text-fill-color: rgba(248, 244, 240, 0.45);
+  opacity: 1;
 }
 
 .icon {
