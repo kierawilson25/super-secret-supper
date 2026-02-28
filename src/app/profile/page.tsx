@@ -387,36 +387,38 @@ function InterestChips({ selected, onChange }: InterestChipsProps) {
   );
 }
 
-// ─── Feedback banner ──────────────────────────────────────────────────────────
+// ─── Toast notification (fixed position, always visible) ─────────────────────
 
-interface FeedbackBannerProps {
+interface ToastProps {
   message: string;
   isError: boolean;
 }
 
-function FeedbackBanner({ message, isError }: FeedbackBannerProps) {
+function Toast({ message, isError }: ToastProps) {
   if (!message) return null;
 
-  const bannerStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '12px 16px',
+  const toastStyle: React.CSSProperties = {
+    position: 'fixed',
+    bottom: '32px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '12px 24px',
     borderRadius: '8px',
     border: `1px solid ${isError ? '#f87171' : '#4ade80'}`,
-    backgroundColor: isError ? 'rgba(248, 113, 113, 0.1)' : 'rgba(74, 222, 128, 0.1)',
-    marginBottom: '16px',
-  };
-
-  const textStyle: React.CSSProperties = {
+    backgroundColor: isError ? 'rgba(30, 10, 10, 0.95)' : 'rgba(10, 30, 10, 0.95)',
     color: isError ? '#f87171' : '#4ade80',
     fontSize: '14px',
-    textAlign: 'center' as const,
-    margin: 0,
     fontFamily: 'Inter, sans-serif',
+    fontWeight: 500,
+    whiteSpace: 'nowrap' as const,
+    zIndex: 9999,
+    boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+    pointerEvents: 'none',
   };
 
   return (
-    <div style={bannerStyle} role="alert" aria-live="polite">
-      <p style={textStyle}>{message}</p>
+    <div style={toastStyle} role="alert" aria-live="polite">
+      {message}
     </div>
   );
 }
@@ -582,14 +584,6 @@ export default function ProfilePage() {
         )}
 
         <div style={dividerStyle} aria-hidden="true" />
-
-        {feedbackMessage && (
-          <FeedbackBanner message={feedbackMessage} isError={isError} />
-        )}
-
-        {profileError && !feedbackMessage && (
-          <FeedbackBanner message="There was a problem loading your profile." isError={true} />
-        )}
 
         {/* Dinner score */}
         <div style={sectionCard}>
@@ -783,6 +777,7 @@ export default function ProfilePage() {
         </Button>
       </form>
       <Footer />
+      <Toast message={feedbackMessage || (profileError ? 'There was a problem loading your profile.' : '')} isError={isError || !!profileError} />
     </PageContainer>
   );
 }
