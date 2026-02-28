@@ -690,6 +690,13 @@ export default function ProfilePage() {
               onMouseDown={() => { usernameDoneRef.current = true; }}
               onClick={() => {
                 if (isEditingUsername) {
+                  const trimmed = username.trim();
+                  if (trimmed.length > 0 && trimmed.length < 3) {
+                    setUsernameError('Must be at least 3 characters.');
+                    document.getElementById('username')?.focus();
+                    return;
+                  }
+                  setUsernameError('');
                   setIsEditingUsername(false);
                 } else {
                   setUsernameSnapshot(username);
