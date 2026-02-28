@@ -10,6 +10,11 @@ export interface Profile {
   isadmin?: boolean;
   created_at: string;
   updated_at: string;
+  // Extended profile fields — columns may not exist yet; handled gracefully
+  avatar_url?: string | null;
+  interests?: string[] | null;
+  relationship_status?: string | null;
+  occupation?: string | null;
 }
 
 export function useProfile() {
