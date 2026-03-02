@@ -1,3 +1,7 @@
-ALTER TABLE public.groups
-  ADD COLUMN IF NOT EXISTS group_vibe text,
-  ADD COLUMN IF NOT EXISTS group_hashtags text[] DEFAULT '{}';
+-- No-op migration: vibe and hashtag infrastructure already exists in schema.
+--
+-- groups.vibe (text) already present.
+-- public.hashtags (hashtag_id uuid, tag text UNIQUE) already present.
+-- public.group_hashtags (group_id uuid, hashtag_id uuid) join table already present.
+--
+-- createGroup in useGroups.ts writes to these tables directly.

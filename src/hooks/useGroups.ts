@@ -95,8 +95,6 @@ export function useGroups() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      console.log('Creating group with:', { name, city, cadence, vibe, hashtags, admin_id: user.id });
-
       const { data, error } = await supabase
         .from('groups')
         .insert({
@@ -104,39 +102,42 @@ export function useGroups() {
           groupcity: city,
           dinner_cadence: cadence,
           admin_id: user.id,
-          group_vibe: vibe,
-          group_hashtags: hashtags ?? [],
+          vibe: vibe || null,
         })
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating group:', error);
-        throw error;
-      }
-
-      console.log('Group created successfully:', data);
+      if (error) throw error;
 
       // Add creator as a member
       const { error: memberError } = await supabase
         .from('peoplegroup')
-        .insert({
-          groups_groupid: data.groupid,
-          users_userid: user.id,
-        });
+        .insert({ groups_groupid: data.groupid, users_userid: user.id });
 
-      if (memberError) {
-        console.error('Error adding creator as member:', memberError);
-        throw memberError;
+      if (memberError) throw memberError;
+
+      // Write hashtags through the normalized join tables
+      if (hashtags && hashtags.length > 0) {
+        for (const tag of hashtags) {
+          // Get or create the hashtag row
+          const { data: hashtagRow, error: hashtagError } = await supabase
+            .from('hashtags')
+            .upsert({ tag }, { onConflict: 'tag' })
+            .select('hashtag_id')
+            .single();
+
+          if (hashtagError || !hashtagRow) continue;
+
+          await supabase
+            .from('group_hashtags')
+            .insert({ group_id: data.groupid, hashtag_id: hashtagRow.hashtag_id });
+        }
       }
-
-      console.log('Creator added as member successfully');
 
       setGroups([...groups, data]);
       return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('createGroup failed:', err);
       setError(errorMessage);
       throw err;
     }
