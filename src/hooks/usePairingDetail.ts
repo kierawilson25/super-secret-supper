@@ -14,6 +14,8 @@ export interface PairingDetailData {
   location: { locationName: string; locationCity: string } | null;
   userHasSetAvailability: boolean;
   partnerHasSetAvailability: boolean | null;
+  confirmedDate: string | null;
+  confirmedSlot: string | null;
 }
 
 export function usePairingDetail(eventId: string, refreshKey?: number) {
@@ -28,6 +30,8 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
     location: null,
     userHasSetAvailability: false,
     partnerHasSetAvailability: null,
+    confirmedDate: null,
+    confirmedSlot: null,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,12 +82,14 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
         let location: { locationName: string; locationCity: string } | null = null;
         let userHasSetAvailability = false;
         let partnerHasSetAvailability: boolean | null = null;
+        let confirmedDate: string | null = null;
+        let confirmedSlot: string | null = null;
 
         if (isAccepted) {
           // 4. Find all matches for this event, then find which one has this user
           const { data: eventMatches } = await supabase
             .from('dinner_matches')
-            .select('id, location_id')
+            .select('id, location_id, confirmed_date, confirmed_slot')
             .eq('dinner_event_id', eventId);
 
           if (eventMatches && eventMatches.length > 0) {
@@ -99,6 +105,8 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
             if (myMatchGuest && myMatchGuest.length > 0) {
               const matchId = myMatchGuest[0].match_id as string;
               const match = eventMatches.find(m => m.id === matchId);
+              confirmedDate = (match?.confirmed_date as string | null) ?? null;
+              confirmedSlot = (match?.confirmed_slot as string | null) ?? null;
 
               // 5. Fetch location if assigned
               if (match?.location_id) {
@@ -177,6 +185,8 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
           location,
           userHasSetAvailability,
           partnerHasSetAvailability,
+          confirmedDate,
+          confirmedSlot,
         });
 
         setLoading(false);

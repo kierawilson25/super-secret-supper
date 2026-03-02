@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { PageContainer, ContentContainer, Footer, PageHeader, PageLoading, Button } from '@/components';
-import { usePairingDetail, usePairingResponse } from '@/hooks';
+import { usePairingDetail, usePairingResponse, useAvailabilityMatch } from '@/hooks';
 import { supabase } from '@/lib/supabase';
 
 const cadenceCopy: Record<string, string> = {
@@ -94,6 +94,29 @@ const backLinkStyle: React.CSSProperties = {
   opacity: 0.65,
 };
 
+const confirmedBannerStyle: React.CSSProperties = {
+  backgroundColor: 'rgba(251,230,166,0.12)',
+  border: '1px solid rgba(251,230,166,0.4)',
+  borderRadius: '8px',
+  padding: '12px 14px',
+  marginBottom: '12px',
+};
+
+const noMatchBannerStyle: React.CSSProperties = {
+  backgroundColor: 'rgba(248,244,240,0.06)',
+  border: '1px solid rgba(248,244,240,0.2)',
+  borderRadius: '8px',
+  padding: '12px 14px',
+  marginBottom: '12px',
+};
+
+const slotLabels: Record<string, string> = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  late_night: 'Late Night',
+};
+
 export default function PairingDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -104,6 +127,7 @@ export default function PairingDetailPage() {
 
   const { detail, loading, error } = usePairingDetail(eventId, refreshKey);
   const { respond, loading: responding, error: respondError } = usePairingResponse();
+  const matchData = useAvailabilityMatch(eventId || null, refreshKey);
 
   useEffect(() => {
     if (!eventId) return;
@@ -165,12 +189,16 @@ export default function PairingDetailPage() {
     }
   };
 
+  const handleSkip = async () => {
+    if (!detail.inviteId) return;
+    await respond(detail.inviteId, 'declined');
+    if (!respondError) {
+      router.push('/home');
+    }
+  };
+
   const isPending = detail.inviteStatus === 'pending';
   const isAccepted = detail.inviteStatus === 'accepted';
-
-  const formattedDate = detail.scheduledDate
-    ? new Date(detail.scheduledDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-    : 'TBD';
 
   return (
     <PageContainer>
@@ -204,24 +232,84 @@ export default function PairingDetailPage() {
           {isAccepted && (
             <>
               <p style={rowStyle}>Group: {detail.groupName}</p>
-              <p style={rowStyle}>Date: {formattedDate}</p>
               <p style={rowStyle}>Location: {detail.location?.locationName ?? 'TBD'}</p>
 
               <div style={dividerStyle} aria-hidden="true" />
 
-              <p style={{ ...rowStyle, fontWeight: 700, opacity: 1, marginBottom: '8px' }}>Availability</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
-                <span style={statusPillStyle(detail.userHasSetAvailability)}>
-                  <span aria-hidden="true">{detail.userHasSetAvailability ? '✓' : '○'}</span>
-                  You: {detail.userHasSetAvailability ? 'Ready' : 'Not set'}
-                </span>
-                <span style={statusPillStyle(detail.partnerHasSetAvailability === true)}>
-                  <span aria-hidden="true">{detail.partnerHasSetAvailability ? '✓' : '○'}</span>
-                  Partner: {detail.partnerHasSetAvailability ? 'Ready' : 'Not set'}
-                </span>
-              </div>
+              {/* Match status section */}
+              {matchData.status === 'matched' ? (
+                <div style={confirmedBannerStyle} role="status">
+                  <p style={{ ...rowStyle, color: '#FBE6A6', fontWeight: 700, opacity: 1, marginBottom: '4px' }}>
+                    Date confirmed
+                  </p>
+                  <p style={{ ...rowStyle, marginBottom: 0 }}>
+                    {(matchData.confirmedDate || detail.confirmedDate)
+                      ? new Date((matchData.confirmedDate || detail.confirmedDate)!).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+                      : 'TBD'}
+                    {(matchData.confirmedSlot || detail.confirmedSlot)
+                      ? ` · ${slotLabels[(matchData.confirmedSlot || detail.confirmedSlot)!] ?? (matchData.confirmedSlot || detail.confirmedSlot)}`
+                      : ''}
+                  </p>
+                </div>
+              ) : matchData.status === 'no_match' ? (
+                <div style={noMatchBannerStyle}>
+                  <p style={{ ...rowStyle, fontWeight: 700, opacity: 1, marginBottom: '4px' }}>No overlap found</p>
+                  <p style={{ ...rowStyle, marginBottom: '12px' }}>
+                    Your availability doesn&apos;t overlap with {detail.partner?.username ?? 'your partner'}&apos;s.
+                    Update your availability to find a time that works.
+                  </p>
+                  <div style={actionRowStyle}>
+                    {detail.groupId && (
+                      <Link
+                        href={`/groups/${detail.groupId}/availability?from=${eventId}`}
+                        style={{ ...ctaLinkStyle, marginTop: 0 }}
+                        aria-label="Update your availability for this dinner"
+                        className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FBE6A6]"
+                      >
+                        {detail.userHasSetAvailability ? 'Edit Availability' : 'Set Availability'}
+                      </Link>
+                    )}
+                    <Button variant="secondary" onClick={handleSkip} disabled={responding}>
+                      {responding ? 'Saving…' : 'Skip this dinner'}
+                    </Button>
+                  </div>
+                </div>
+              ) : matchData.status === 'partner_skipped' ? (
+                <div style={noMatchBannerStyle}>
+                  <p style={{ ...rowStyle, fontWeight: 700, opacity: 1, marginBottom: '4px' }}>Partner opted out</p>
+                  <p style={{ ...rowStyle, marginBottom: 0 }}>
+                    {detail.partner?.username ?? 'Your partner'} declined this dinner.
+                    You&apos;ll be included in the next pairing round.
+                  </p>
+                </div>
+              ) : (
+                /* waiting_for_partner or initial */
+                <>
+                  <p style={{ ...rowStyle, fontWeight: 700, opacity: 1, marginBottom: '8px' }}>Availability</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
+                    <span style={statusPillStyle(detail.userHasSetAvailability)}>
+                      <span aria-hidden="true">{detail.userHasSetAvailability ? '✓' : '○'}</span>
+                      You: {detail.userHasSetAvailability ? 'Ready' : 'Not set'}
+                    </span>
+                    <span style={statusPillStyle(detail.partnerHasSetAvailability === true)}>
+                      <span aria-hidden="true">{detail.partnerHasSetAvailability ? '✓' : '○'}</span>
+                      {detail.partner?.username ?? 'Partner'}: {detail.partnerHasSetAvailability ? 'Ready' : 'Not set'}
+                    </span>
+                  </div>
+                  {!detail.userHasSetAvailability && detail.groupId && (
+                    <p style={{ ...rowStyle, fontSize: '0.85rem', marginTop: '6px', opacity: 0.7 }}>
+                      Submit your availability so we can find a time for your dinner.
+                    </p>
+                  )}
+                  {detail.partnerHasSetAvailability === false && detail.userHasSetAvailability && (
+                    <p style={{ ...rowStyle, fontSize: '0.85rem', marginTop: '6px', opacity: 0.7 }}>
+                      Waiting for {detail.partner?.username ?? 'your partner'} to set their availability.
+                    </p>
+                  )}
+                </>
+              )}
 
-              {detail.groupId && (
+              {matchData.status !== 'no_match' && matchData.status !== 'matched' && matchData.status !== 'partner_skipped' && detail.groupId && (
                 <Link
                   href={`/groups/${detail.groupId}/availability?from=${eventId}`}
                   style={ctaLinkStyle}
