@@ -141,11 +141,21 @@ export function useAvailability(groupId: string, eventId: string | null = null) 
 
             const partnerId = (partnerGuest?.[0]?.user_id as string | null) ?? null;
             if (partnerId) {
-              const { data: partnerSlots } = await supabase
+              // Fall back to general slots for backward compat with pre-scoping data
+              let { data: partnerSlots } = await supabase
                 .from('availability_slots')
                 .select('available_date, time_slot')
                 .eq('user_id', partnerId)
                 .eq('dinner_event_id', eventId);
+
+              if (!partnerSlots || partnerSlots.length === 0) {
+                const { data: generalSlots } = await supabase
+                  .from('availability_slots')
+                  .select('available_date, time_slot')
+                  .eq('user_id', partnerId)
+                  .is('dinner_event_id', null);
+                partnerSlots = generalSlots;
+              }
 
               if (partnerSlots && partnerSlots.length > 0) {
                 const myFlatSlots = Object.entries(newAvailability).flatMap(([date, timeSlots]) =>

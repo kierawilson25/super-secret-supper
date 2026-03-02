@@ -172,25 +172,22 @@ export function useUpcomingDinners(refreshKey?: number) {
                 }
               }
 
-              // Check availability scoped to this dinner event
-              const { data: mySlots } = await supabase
-                .from('availability_slots')
-                .select('id')
-                .eq('user_id', user.id)
-                .eq('dinner_event_id', invite.dinner_event_id)
-                .limit(1);
+              // Check availability — event-scoped first, fall back to general for backward compat
+              const dinnerEventId = invite.dinner_event_id as string;
+              const hasSlots = async (userId: string): Promise<boolean> => {
+                const { data: ev } = await supabase
+                  .from('availability_slots').select('id')
+                  .eq('user_id', userId).eq('dinner_event_id', dinnerEventId).limit(1);
+                if ((ev?.length ?? 0) > 0) return true;
+                const { data: gen } = await supabase
+                  .from('availability_slots').select('id')
+                  .eq('user_id', userId).is('dinner_event_id', null).limit(1);
+                return (gen?.length ?? 0) > 0;
+              };
 
-              userHasSetAvailability = (mySlots?.length ?? 0) > 0;
-
+              userHasSetAvailability = await hasSlots(user.id);
               if (partner) {
-                const { data: partnerSlots } = await supabase
-                  .from('availability_slots')
-                  .select('id')
-                  .eq('user_id', partner.userid)
-                  .eq('dinner_event_id', invite.dinner_event_id)
-                  .limit(1);
-
-                partnerHasSetAvailability = (partnerSlots?.length ?? 0) > 0;
+                partnerHasSetAvailability = await hasSlots(partner.userid);
               }
             }
 

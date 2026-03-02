@@ -56,9 +56,10 @@ export function useAvailabilityMatch(eventId: string | null, refreshKey?: number
       if (!user) return;
 
       // 1. Find this user's match for the event
+      // NOTE: confirmed_date is fetched separately so this query works before migration runs
       const { data: eventMatches } = await supabase
         .from('dinner_matches')
-        .select('id, status, confirmed_date')
+        .select('id, status')
         .eq('dinner_event_id', eventId);
 
       if (!eventMatches || eventMatches.length === 0) return;
@@ -74,7 +75,6 @@ export function useAvailabilityMatch(eventId: string | null, refreshKey?: number
       if (!myGuest || myGuest.length === 0) return;
 
       const matchId = myGuest[0].match_id as string;
-      const match = eventMatches.find(m => m.id === matchId);
 
       // 2. Find partner
       const { data: partnerGuest } = await supabase
@@ -98,20 +98,24 @@ export function useAvailabilityMatch(eventId: string | null, refreshKey?: number
         partnerSkipped = partnerInvite?.status === 'declined';
       }
 
-      // 4. If match already has a confirmed_date, use it
-      if (match?.confirmed_date) {
-        const confirmedDate = match.confirmed_date as string;
-        const dateOnly = confirmedDate.split('T')[0];
+      // 4. If match already has a confirmed_date in DB, use it
+      // (select separately so this is safe if migration hasn't run yet)
+      const { data: matchDetails } = await supabase
+        .from('dinner_matches')
+        .select('confirmed_date, confirmed_slot')
+        .eq('id', matchId)
+        .single();
+
+      if (matchDetails?.confirmed_date) {
         setData({
           status: 'matched',
-          confirmedDate,
-          confirmedSlot: null,
+          confirmedDate: matchDetails.confirmed_date as string,
+          confirmedSlot: (matchDetails.confirmed_slot as string | null) ?? null,
           overlappingSlots: [],
           matchId,
           partnerId,
           partnerSkipped: false,
         });
-        void dateOnly;
         return;
       }
 
@@ -120,22 +124,27 @@ export function useAvailabilityMatch(eventId: string | null, refreshKey?: number
         return;
       }
 
-      // 5. Load both users' slots for this event
-      const { data: mySlots } = await supabase
-        .from('availability_slots')
-        .select('available_date, time_slot')
-        .eq('user_id', user.id)
-        .eq('dinner_event_id', eventId);
+      // 5. Load both users' slots — event-scoped first, fall back to general (null)
+      //    for backward compat with availability saved before event-scoping was added
+      const fetchSlots = async (userId: string) => {
+        const { data: eventSlots } = await supabase
+          .from('availability_slots')
+          .select('available_date, time_slot')
+          .eq('user_id', userId)
+          .eq('dinner_event_id', eventId!);
+        if (eventSlots && eventSlots.length > 0) return eventSlots;
+        const { data: generalSlots } = await supabase
+          .from('availability_slots')
+          .select('available_date, time_slot')
+          .eq('user_id', userId)
+          .is('dinner_event_id', null);
+        return generalSlots ?? [];
+      };
 
-      const { data: partnerSlots } = partnerId
-        ? await supabase
-            .from('availability_slots')
-            .select('available_date, time_slot')
-            .eq('user_id', partnerId)
-            .eq('dinner_event_id', eventId)
-        : { data: null };
+      const mySlots = await fetchSlots(user.id);
+      const partnerSlots = partnerId ? await fetchSlots(partnerId) : [];
 
-      const hasPartnerSlots = (partnerSlots?.length ?? 0) > 0;
+      const hasPartnerSlots = partnerSlots.length > 0;
 
       if (!hasPartnerSlots) {
         setData({ status: 'waiting_for_partner', confirmedDate: null, confirmedSlot: null, overlappingSlots: [], matchId, partnerId, partnerSkipped: false });
@@ -143,7 +152,7 @@ export function useAvailabilityMatch(eventId: string | null, refreshKey?: number
       }
 
       // 6. Compute overlap
-      const earliest = computeEarliestOverlap(mySlots ?? [], partnerSlots ?? []);
+      const earliest = computeEarliestOverlap(mySlots, partnerSlots);
 
       if (!earliest) {
         setData({ status: 'no_match', confirmedDate: null, confirmedSlot: null, overlappingSlots: [], matchId, partnerId, partnerSkipped: false });
@@ -151,8 +160,8 @@ export function useAvailabilityMatch(eventId: string | null, refreshKey?: number
       }
 
       // Build full overlapping list for display
-      const partnerSet = new Set((partnerSlots ?? []).map(s => `${s.available_date}|${s.time_slot}`));
-      const overlappingSlots = (mySlots ?? [])
+      const partnerSet = new Set(partnerSlots.map(s => `${s.available_date}|${s.time_slot}`));
+      const overlappingSlots = mySlots
         .filter(s => partnerSet.has(`${s.available_date}|${s.time_slot}`))
         .map(s => ({ date: s.available_date, slot: s.time_slot }));
 
