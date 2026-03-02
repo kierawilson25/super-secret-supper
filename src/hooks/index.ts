@@ -11,6 +11,7 @@ export { usePairedMemberAvailability } from './usePairedMemberAvailability';
 export { useUpcomingDinners } from './useUpcomingDinners';
 export { usePairingResponse } from './usePairingResponse';
 export { usePairingDetail } from './usePairingDetail';
+export { useAvailabilityMatch, computeEarliestOverlap } from './useAvailabilityMatch';
 
 export type { Profile } from './useProfile';
 export type { AvailabilityMap, MemberAvailabilitySummary, TimeSlot } from './useAvailability';
@@ -22,3 +23,4 @@ export type { InviteLink } from './useInviteLinks';
 export type { PairingHistoryItem } from './usePairingHistory';
 export type { UpcomingDinner } from './useUpcomingDinners';
 export type { PairingDetailData } from './usePairingDetail';
+export type { MatchStatus, AvailabilityMatchData } from './useAvailabilityMatch';

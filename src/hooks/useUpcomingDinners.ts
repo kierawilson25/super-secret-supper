@@ -14,6 +14,9 @@ export interface UpcomingDinner {
   partner: { userid: string; username: string } | null; // null until accepted
   userHasSetAvailability: boolean;
   partnerHasSetAvailability: boolean | null; // null until accepted
+  confirmedDate: string | null;
+  confirmedSlot: string | null;
+  matchStatus: 'waiting_for_partner' | 'no_match' | 'matched' | null;
 }
 
 export function useUpcomingDinners(refreshKey?: number) {
@@ -116,12 +119,14 @@ export function useUpcomingDinners(refreshKey?: number) {
             let partner: { userid: string; username: string } | null = null;
             let userHasSetAvailability = false;
             let partnerHasSetAvailability: boolean | null = null;
+            let confirmedDate: string | null = null;
+            let confirmedSlot: string | null = null;
 
             if (isAccepted) {
               // Find all matches for this event, then check which one has this user
               const { data: eventMatches } = await supabase
                 .from('dinner_matches')
-                .select('id')
+                .select('id, confirmed_date, confirmed_slot')
                 .eq('dinner_event_id', invite.dinner_event_id);
 
               if (eventMatches && eventMatches.length > 0) {
@@ -136,6 +141,9 @@ export function useUpcomingDinners(refreshKey?: number) {
 
                 if (myMatchGuest && myMatchGuest.length > 0) {
                   const matchId = myMatchGuest[0].match_id as string;
+                  const myMatch = eventMatches.find(m => m.id === matchId);
+                  confirmedDate = (myMatch?.confirmed_date as string | null) ?? null;
+                  confirmedSlot = (myMatch?.confirmed_slot as string | null) ?? null;
 
                   // Find partner's user_id
                   const { data: partnerGuest } = await supabase
@@ -186,6 +194,14 @@ export function useUpcomingDinners(refreshKey?: number) {
               }
             }
 
+            const matchStatus: 'waiting_for_partner' | 'no_match' | 'matched' | null = isAccepted
+              ? confirmedDate
+                ? 'matched'
+                : userHasSetAvailability && partnerHasSetAvailability === true
+                  ? 'no_match'
+                  : 'waiting_for_partner'
+              : null;
+
             return {
               inviteId: invite.id as string,
               eventId: invite.dinner_event_id as string,
@@ -197,6 +213,9 @@ export function useUpcomingDinners(refreshKey?: number) {
               partner,
               userHasSetAvailability,
               partnerHasSetAvailability,
+              confirmedDate,
+              confirmedSlot,
+              matchStatus,
             };
           })
         );

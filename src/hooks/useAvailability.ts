@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { computeEarliestOverlap } from './useAvailabilityMatch';
 
 export type TimeSlot = 'breakfast' | 'lunch' | 'dinner' | 'late_night';
 
@@ -112,6 +113,60 @@ export function useAvailability(groupId: string, eventId: string | null = null) 
       }
 
       setAvailability(newAvailability);
+
+      // Auto-confirm match: if event-scoped and partner has also submitted, write confirmed date
+      if (eventId) {
+        const { data: eventMatches } = await supabase
+          .from('dinner_matches')
+          .select('id')
+          .eq('dinner_event_id', eventId);
+
+        if (eventMatches && eventMatches.length > 0) {
+          const matchIds = eventMatches.map(m => m.id as string);
+          const { data: myGuest } = await supabase
+            .from('dinner_match_guests')
+            .select('match_id')
+            .eq('user_id', currentUserId)
+            .in('match_id', matchIds)
+            .limit(1);
+
+          if (myGuest && myGuest.length > 0) {
+            const matchId = myGuest[0].match_id as string;
+            const { data: partnerGuest } = await supabase
+              .from('dinner_match_guests')
+              .select('user_id')
+              .eq('match_id', matchId)
+              .neq('user_id', currentUserId)
+              .limit(1);
+
+            const partnerId = (partnerGuest?.[0]?.user_id as string | null) ?? null;
+            if (partnerId) {
+              const { data: partnerSlots } = await supabase
+                .from('availability_slots')
+                .select('available_date, time_slot')
+                .eq('user_id', partnerId)
+                .eq('dinner_event_id', eventId);
+
+              if (partnerSlots && partnerSlots.length > 0) {
+                const myFlatSlots = Object.entries(newAvailability).flatMap(([date, timeSlots]) =>
+                  [...timeSlots].map(slot => ({ available_date: date, time_slot: slot }))
+                );
+                const earliest = computeEarliestOverlap(myFlatSlots, partnerSlots);
+                if (earliest) {
+                  await supabase
+                    .from('dinner_matches')
+                    .update({
+                      confirmed_date: `${earliest.date}T00:00:00`,
+                      confirmed_slot: earliest.slot,
+                      status: 'confirmed',
+                    })
+                    .eq('id', matchId);
+                }
+              }
+            }
+          }
+        }
+      }
     } finally {
       setSaving(false);
     }

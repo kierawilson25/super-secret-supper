@@ -108,6 +108,21 @@ const inlineErrorStyle: React.CSSProperties = {
   marginTop: '8px',
 };
 
+const confirmedBannerStyle: React.CSSProperties = {
+  backgroundColor: 'rgba(251,230,166,0.12)',
+  border: '1px solid rgba(251,230,166,0.4)',
+  borderRadius: '8px',
+  padding: '10px 12px',
+  marginTop: '10px',
+};
+
+const slotLabels: Record<string, string> = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  late_night: 'Late Night',
+};
+
 export function UpcomingDinnerCard({ dinner, onAccept, onDecline }: UpcomingDinnerCardProps) {
   const [accepting, setAccepting] = React.useState(false);
   const [declining, setDeclining] = React.useState(false);
@@ -176,20 +191,41 @@ export function UpcomingDinnerCard({ dinner, onAccept, onDecline }: UpcomingDinn
   }
 
   // Accepted state
+  const isMatched = dinner.matchStatus === 'matched';
+  const isNoMatch = dinner.matchStatus === 'no_match';
+
   return (
     <div style={cardStyle}>
       <p style={labelStyle}>Dinner with {partnerName}</p>
       <p style={subTextStyle}>Group: {dinner.groupName}</p>
-      <div style={statusRowStyle}>
-        <span style={statusPillStyle(dinner.userHasSetAvailability)}>
-          <span aria-hidden="true">{dinner.userHasSetAvailability ? '✓' : '○'}</span>
-          You: {dinner.userHasSetAvailability ? 'Ready' : 'Not set'}
-        </span>
-        <span style={statusPillStyle(dinner.partnerHasSetAvailability === true)}>
-          <span aria-hidden="true">{dinner.partnerHasSetAvailability ? '✓' : '○'}</span>
-          {partnerName}: {dinner.partnerHasSetAvailability ? 'Ready' : 'Not set'}
-        </span>
-      </div>
+
+      {isMatched && dinner.confirmedDate ? (
+        <div style={confirmedBannerStyle} role="status" aria-label="Dinner date confirmed">
+          <p style={{ ...subTextStyle, color: '#FBE6A6', fontWeight: 700, marginBottom: '2px', opacity: 1 }}>
+            Date confirmed
+          </p>
+          <p style={{ ...subTextStyle, marginBottom: 0, opacity: 0.9 }}>
+            {new Date(dinner.confirmedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            {dinner.confirmedSlot ? ` · ${slotLabels[dinner.confirmedSlot] ?? dinner.confirmedSlot}` : ''}
+          </p>
+        </div>
+      ) : isNoMatch ? (
+        <p style={{ ...subTextStyle, color: 'rgba(248,244,240,0.65)', marginTop: '8px' }}>
+          No overlap found — update your availability to find a time.
+        </p>
+      ) : (
+        <div style={statusRowStyle}>
+          <span style={statusPillStyle(dinner.userHasSetAvailability)}>
+            <span aria-hidden="true">{dinner.userHasSetAvailability ? '✓' : '○'}</span>
+            You: {dinner.userHasSetAvailability ? 'Ready' : 'Not set'}
+          </span>
+          <span style={statusPillStyle(dinner.partnerHasSetAvailability === true)}>
+            <span aria-hidden="true">{dinner.partnerHasSetAvailability ? '✓' : '○'}</span>
+            {partnerName}: {dinner.partnerHasSetAvailability ? 'Ready' : 'Not set'}
+          </span>
+        </div>
+      )}
+
       <Link
         href={`/pairings/${dinner.eventId}`}
         style={viewLinkStyle}
