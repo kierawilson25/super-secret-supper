@@ -1,26 +1,39 @@
 export const createGroupContent = {
-  title: 'Create your Group',
-  subtitle: 'Start a new Super Secret Supper group with your friends.',
+  title: 'Create a Circle',
+  subtitle: 'Set the vibe for your secret dining crew.',
   labels: {
-    groupName: 'Group Name',
+    groupName: 'Circle Name',
     city: 'City',
     dinnerCadence: 'Dinner Cadence',
+    vibeCheck: 'Vibe Check',
+    hashtags: 'Hashtags',
   },
   placeholders: {
-    groupName: 'e.g., College Friends, Work Squad, Co Werkers',
+    groupName: 'e.g. Ramen Heads, The Usual Suspects',
     city: 'What city are you in?',
+    vibeCheck: 'e.g. Late night adventurers who never say no to ramen',
   },
   cadenceOptions: [
     { value: 'biweekly', label: 'Biweekly' },
     { value: 'monthly', label: 'Monthly' },
     { value: 'quarterly', label: 'Quarterly' },
   ],
+  hashtagOptions: [
+    '#latenight plates',
+    '#cozy vibes',
+    '#weeknight bites',
+    '#weekend warriors',
+    '#foodie deep cuts',
+    '#low key hangs',
+    '#fine dining curious',
+    '#hole in the wall',
+  ],
   buttons: {
-    create: 'Create Group',
-    cancel: 'Cancel',
+    create: 'Start the Circle',
+    cancel: 'Never mind',
   },
   messages: {
-    success: 'Group created! Invite your friends to join.',
-    error: 'Failed to create group. Please try again.',
+    success: 'Circle created! Invite your friends to join.',
+    error: 'Failed to create circle. Please try again.',
   },
 };
