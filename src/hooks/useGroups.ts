@@ -90,12 +90,12 @@ export function useGroups() {
     fetchGroups();
   }, []);
 
-  const createGroup = async (name: string, city?: string, cadence: 'monthly' | 'quarterly' | 'biweekly' = 'monthly') => {
+  const createGroup = async (name: string, city?: string, cadence: 'monthly' | 'quarterly' | 'biweekly' = 'monthly', vibe?: string, hashtags?: string[]) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      console.log('Creating group with:', { name, city, cadence, admin_id: user.id });
+      console.log('Creating group with:', { name, city, cadence, vibe, hashtags, admin_id: user.id });
 
       const { data, error } = await supabase
         .from('groups')
@@ -104,6 +104,8 @@ export function useGroups() {
           groupcity: city,
           dinner_cadence: cadence,
           admin_id: user.id,
+          group_vibe: vibe,
+          group_hashtags: hashtags ?? [],
         })
         .select()
         .single();
