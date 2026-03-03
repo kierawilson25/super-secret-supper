@@ -64,6 +64,10 @@ input:disabled::placeholder {
   opacity: 1;
 }
 
+.footer-link:hover {
+  text-decoration: underline;
+}
+
 .icon {
   margin: 2rem 0;
 }
