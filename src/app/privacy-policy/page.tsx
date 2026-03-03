@@ -1,3 +1,5 @@
+'use client';
+
 import { PageContainer, ContentContainer, Footer, PageHeader } from '@/components';
 
 const EFFECTIVE_DATE = 'March 3, 2026';
