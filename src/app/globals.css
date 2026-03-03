@@ -72,6 +72,19 @@ input:disabled::placeholder {
   text-decoration: underline;
 }
 
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.5; }
+  50% { transform: translateY(7px); opacity: 1; }
+}
+
+.scroll-indicator {
+  animation: scroll-bounce 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-indicator { animation: none; }
+}
+
 .icon {
   margin: 2rem 0;
 }

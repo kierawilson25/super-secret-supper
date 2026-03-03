@@ -126,7 +126,7 @@ function NavBar() {
 // ─── Hero ───────────────────────────────────────────────────────────────────
 function HeroSection() {
   return (
-    <section id="hero" aria-labelledby="hero-heading" style={{ ...section, paddingTop: '100px', paddingBottom: '100px', textAlign: 'center' }}>
+    <section id="hero" aria-labelledby="hero-heading" style={{ ...section, paddingTop: '100px', paddingBottom: '48px', textAlign: 'center' }}>
       <div style={{ ...col, maxWidth: '520px' }}>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(251,230,166,0.6)', marginBottom: '24px', marginTop: 0 }} aria-hidden="true">
           ✦&nbsp; Dinner &nbsp;·&nbsp; Friendship &nbsp;·&nbsp; Discovery &nbsp;·&nbsp; ✦
@@ -141,12 +141,12 @@ function HeroSection() {
           Super Secret Supper pairs you with a different member of your friend group each month for a private one-on-one dinner. No awkward group scheduling. Just you, one friend, and a real conversation.
         </p>
         <CtaButton href="/signup">Create an Account →</CtaButton>
-        <div style={{ marginTop: '64px', display: 'flex', justifyContent: 'center' }} aria-hidden="true">
-          <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ width: 130, height: 130, stroke: gold, fill: 'none', strokeWidth: 1.5, opacity: 0.2 }}>
-            <circle cx="20" cy="32" r="12" />
-            <circle cx="44" cy="32" r="12" />
-            <path d="M32 18 L32 46" />
-            <path d="M16 32 L48 32" />
+        <div style={{ marginTop: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }} aria-hidden="true">
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(251,230,166,0.4)' }}>
+            scroll
+          </span>
+          <svg className="scroll-indicator" viewBox="0 0 24 24" fill="none" stroke={gold} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22, opacity: 0.5 }}>
+            <path d="M6 9l6 6 6-6" />
           </svg>
         </div>
       </div>
