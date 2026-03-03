@@ -5,8 +5,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const linkStyle = { color: '#F8F4F0', textDecoration: 'none' } as const;
-const hoverOn = (e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.textDecoration = 'underline'; };
-const hoverOff = (e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.textDecoration = 'none'; };
 
 export function Footer() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -31,12 +29,12 @@ export function Footer() {
       paddingBottom: '1rem',
       backgroundColor: '#460C58',
     }}>
-      <Link href="/about" style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>About</Link>
-      <Link href="/" style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>Contact</Link>
+      <Link href="/about" style={linkStyle} className="footer-link">About</Link>
+      <Link href="/" style={linkStyle} className="footer-link">Contact</Link>
       {isAuthenticated === false && (
         <>
-          <Link href="/terms-of-service" style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>Terms</Link>
-          <Link href="/privacy-policy" style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>Privacy</Link>
+          <Link href="/terms-of-service" style={linkStyle} className="footer-link">Terms</Link>
+          <Link href="/privacy-policy" style={linkStyle} className="footer-link">Privacy</Link>
         </>
       )}
     </footer>
