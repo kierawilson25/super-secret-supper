@@ -64,6 +64,10 @@ input:disabled::placeholder {
   opacity: 1;
 }
 
+.footer-link {
+  text-decoration: none;
+}
+
 .footer-link:hover {
   text-decoration: underline;
 }
