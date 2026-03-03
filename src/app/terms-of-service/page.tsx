@@ -102,7 +102,7 @@ export default function TermsOfServicePage() {
                     style={tocLinkStyle}
                     className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FBE6A6]"
                   >
-                    {i + 1}. {title}
+                    {title}
                   </a>
                 </li>
               ))}
