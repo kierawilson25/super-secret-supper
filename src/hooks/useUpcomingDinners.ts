@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { computeEarliestOverlap } from './useAvailabilityMatch';
 
 export interface UpcomingDinner {
   inviteId: string;
@@ -14,6 +15,9 @@ export interface UpcomingDinner {
   partner: { userid: string; username: string } | null; // null until accepted
   userHasSetAvailability: boolean;
   partnerHasSetAvailability: boolean | null; // null until accepted
+  confirmedDate: string | null;
+  confirmedSlot: string | null;
+  matchStatus: 'waiting_for_partner' | 'no_match' | 'matched' | null;
 }
 
 export function useUpcomingDinners(refreshKey?: number) {
@@ -116,12 +120,14 @@ export function useUpcomingDinners(refreshKey?: number) {
             let partner: { userid: string; username: string } | null = null;
             let userHasSetAvailability = false;
             let partnerHasSetAvailability: boolean | null = null;
+            let confirmedDate: string | null = null;
+            let confirmedSlot: string | null = null;
 
             if (isAccepted) {
               // Find all matches for this event, then check which one has this user
               const { data: eventMatches } = await supabase
                 .from('dinner_matches')
-                .select('id')
+                .select('id, confirmed_date, confirmed_slot')
                 .eq('dinner_event_id', invite.dinner_event_id);
 
               if (eventMatches && eventMatches.length > 0) {
@@ -136,6 +142,9 @@ export function useUpcomingDinners(refreshKey?: number) {
 
                 if (myMatchGuest && myMatchGuest.length > 0) {
                   const matchId = myMatchGuest[0].match_id as string;
+                  const myMatch = eventMatches.find(m => m.id === matchId);
+                  confirmedDate = (myMatch?.confirmed_date as string | null) ?? null;
+                  confirmedSlot = (myMatch?.confirmed_slot as string | null) ?? null;
 
                   // Find partner's user_id
                   const { data: partnerGuest } = await supabase
@@ -164,27 +173,45 @@ export function useUpcomingDinners(refreshKey?: number) {
                 }
               }
 
-              // Check availability scoped to this dinner event
-              const { data: mySlots } = await supabase
-                .from('availability_slots')
-                .select('id')
-                .eq('user_id', user.id)
-                .eq('dinner_event_id', invite.dinner_event_id)
-                .limit(1);
+              // Check availability — event-scoped first, fall back to general for backward compat
+              const dinnerEventId = invite.dinner_event_id as string;
+              const fetchSlots = async (userId: string) => {
+                const { data: ev } = await supabase
+                  .from('availability_slots').select('available_date, time_slot')
+                  .eq('user_id', userId).eq('dinner_event_id', dinnerEventId);
+                if (ev && ev.length > 0) return ev;
+                const { data: gen } = await supabase
+                  .from('availability_slots').select('available_date, time_slot')
+                  .eq('user_id', userId).is('dinner_event_id', null);
+                return gen ?? [];
+              };
 
-              userHasSetAvailability = (mySlots?.length ?? 0) > 0;
-
+              const mySlots = await fetchSlots(user.id);
+              userHasSetAvailability = mySlots.length > 0;
+              let partnerSlots: { available_date: string; time_slot: string }[] = [];
               if (partner) {
-                const { data: partnerSlots } = await supabase
-                  .from('availability_slots')
-                  .select('id')
-                  .eq('user_id', partner.userid)
-                  .eq('dinner_event_id', invite.dinner_event_id)
-                  .limit(1);
+                partnerSlots = await fetchSlots(partner.userid);
+                partnerHasSetAvailability = partnerSlots.length > 0;
+              }
 
-                partnerHasSetAvailability = (partnerSlots?.length ?? 0) > 0;
+              // If no confirmed_date from DB, compute overlap in memory for backward compat
+              // (handles availability saved before saveAvailability auto-confirm was added)
+              if (!confirmedDate && mySlots.length > 0 && partnerSlots.length > 0) {
+                const earliest = computeEarliestOverlap(mySlots, partnerSlots);
+                if (earliest) {
+                  confirmedDate = `${earliest.date}T00:00:00`;
+                  confirmedSlot = earliest.slot;
+                }
               }
             }
+
+            const matchStatus: 'waiting_for_partner' | 'no_match' | 'matched' | null = isAccepted
+              ? confirmedDate
+                ? 'matched'
+                : userHasSetAvailability && partnerHasSetAvailability === true
+                  ? 'no_match'
+                  : 'waiting_for_partner'
+              : null;
 
             return {
               inviteId: invite.id as string,
@@ -197,6 +224,9 @@ export function useUpcomingDinners(refreshKey?: number) {
               partner,
               userHasSetAvailability,
               partnerHasSetAvailability,
+              confirmedDate,
+              confirmedSlot,
+              matchStatus,
             };
           })
         );

@@ -14,6 +14,8 @@ export interface PairingDetailData {
   location: { locationName: string; locationCity: string } | null;
   userHasSetAvailability: boolean;
   partnerHasSetAvailability: boolean | null;
+  confirmedDate: string | null;
+  confirmedSlot: string | null;
 }
 
 export function usePairingDetail(eventId: string, refreshKey?: number) {
@@ -28,6 +30,8 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
     location: null,
     userHasSetAvailability: false,
     partnerHasSetAvailability: null,
+    confirmedDate: null,
+    confirmedSlot: null,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,9 +82,12 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
         let location: { locationName: string; locationCity: string } | null = null;
         let userHasSetAvailability = false;
         let partnerHasSetAvailability: boolean | null = null;
+        let confirmedDate: string | null = null;
+        let confirmedSlot: string | null = null;
 
         if (isAccepted) {
           // 4. Find all matches for this event, then find which one has this user
+          // NOTE: confirmed_date/confirmed_slot fetched separately to be safe before migration runs
           const { data: eventMatches } = await supabase
             .from('dinner_matches')
             .select('id, location_id')
@@ -99,6 +106,15 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
             if (myMatchGuest && myMatchGuest.length > 0) {
               const matchId = myMatchGuest[0].match_id as string;
               const match = eventMatches.find(m => m.id === matchId);
+
+              // Safe fetch of confirmed_date/slot — silently returns null if migration not yet run
+              const { data: confirmedDetails } = await supabase
+                .from('dinner_matches')
+                .select('confirmed_date, confirmed_slot')
+                .eq('id', matchId)
+                .single();
+              confirmedDate = (confirmedDetails?.confirmed_date as string | null) ?? null;
+              confirmedSlot = (confirmedDetails?.confirmed_slot as string | null) ?? null;
 
               // 5. Fetch location if assigned
               if (match?.location_id) {
@@ -144,25 +160,21 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
             }
           }
 
-          // 8. Check availability scoped to this dinner event
-          const { data: mySlots } = await supabase
-            .from('availability_slots')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('dinner_event_id', eventId)
-            .limit(1);
+          // 8. Check availability — event-scoped first, fall back to general for backward compat
+          const hasSlots = async (userId: string): Promise<boolean> => {
+            const { data: ev } = await supabase
+              .from('availability_slots').select('id')
+              .eq('user_id', userId).eq('dinner_event_id', eventId).limit(1);
+            if ((ev?.length ?? 0) > 0) return true;
+            const { data: gen } = await supabase
+              .from('availability_slots').select('id')
+              .eq('user_id', userId).is('dinner_event_id', null).limit(1);
+            return (gen?.length ?? 0) > 0;
+          };
 
-          userHasSetAvailability = (mySlots?.length ?? 0) > 0;
-
+          userHasSetAvailability = await hasSlots(user.id);
           if (partner) {
-            const { data: partnerSlots } = await supabase
-              .from('availability_slots')
-              .select('id')
-              .eq('user_id', partner.userid)
-              .eq('dinner_event_id', eventId)
-              .limit(1);
-
-            partnerHasSetAvailability = (partnerSlots?.length ?? 0) > 0;
+            partnerHasSetAvailability = await hasSlots(partner.userid);
           }
         }
 
@@ -177,6 +189,8 @@ export function usePairingDetail(eventId: string, refreshKey?: number) {
           location,
           userHasSetAvailability,
           partnerHasSetAvailability,
+          confirmedDate,
+          confirmedSlot,
         });
 
         setLoading(false);
