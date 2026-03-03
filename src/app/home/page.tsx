@@ -132,9 +132,20 @@ function UpcomingDinnersSection({ dinners, loading, onAccept, onDecline }: {
           <Link href="/groups" style={S.emptyCta} {...focusHandlers}>Go to your groups</Link>
         </div>
       ) : (
-        dinners.map(dinner => (
-          <UpcomingDinnerCard key={dinner.inviteId} dinner={dinner} onAccept={onAccept} onDecline={onDecline} />
-        ))
+        [...dinners]
+          .sort((a, b) => {
+            const aMatched = a.matchStatus === 'matched';
+            const bMatched = b.matchStatus === 'matched';
+            if (aMatched && !bMatched) return -1;
+            if (!aMatched && bMatched) return 1;
+            if (aMatched && bMatched) {
+              return (a.confirmedDate ?? '').localeCompare(b.confirmedDate ?? '');
+            }
+            return 0;
+          })
+          .map(dinner => (
+            <UpcomingDinnerCard key={dinner.inviteId} dinner={dinner} onAccept={onAccept} onDecline={onDecline} />
+          ))
       )}
     </section>
   );

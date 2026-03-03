@@ -8,6 +8,7 @@ const TIME_LABELS: Record<string, string> = {
 export const availabilityConfirmationContent = {
   title: 'Availability Saved',
   subtitle: "You're all set! We'll reach out once pairings are confirmed.",
+  subtitlePaired: "You're all set! We'll match your schedule with your partner's to lock in a date.",
 
   yourSection: {
     title: 'Your Availability',

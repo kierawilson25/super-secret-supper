@@ -123,7 +123,7 @@ export default function AvailabilityConfirmationPage() {
       >
         <PageHeader>{c.title}</PageHeader>
         <p style={{ color: '#F8F4F0', textAlign: 'center', marginBottom: '16px', fontSize: '14px' }}>
-          {c.subtitle}
+          {fromEventId ? c.subtitlePaired : c.subtitle}
         </p>
 
         {/* ── Status pills ─────────────────────────────────────────────────── */}
