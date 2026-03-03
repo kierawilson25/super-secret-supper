@@ -1,6 +1,22 @@
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+
+const linkStyle = { color: '#F8F4F0', textDecoration: 'none' } as const;
+const hoverOn = (e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.textDecoration = 'underline'; };
+const hoverOff = (e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.textDecoration = 'none'; };
 
 export function Footer() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsAuthenticated(!!user);
+    });
+  }, []);
+
   return (
     <footer style={{
       position: 'fixed',
@@ -15,18 +31,14 @@ export function Footer() {
       paddingBottom: '1rem',
       backgroundColor: '#460C58',
     }}>
-      <Link href="/about" style={{ color: '#F8F4F0', textDecoration: 'none' }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}>
-        About
-      </Link>
-      <Link href="/" style={{ color: '#F8F4F0', textDecoration: 'none' }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}>
-        FAQ
-      </Link>
-      <Link href="/" style={{ color: '#F8F4F0', textDecoration: 'none' }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}>
-        Contact
-      </Link>
-      <Link href="/login" style={{ color: '#F8F4F0', textDecoration: 'none' }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}>
-        Login
-      </Link>
+      <Link href="/about" style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>About</Link>
+      <Link href="/" style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>Contact</Link>
+      {isAuthenticated === false && (
+        <>
+          <Link href="/terms-of-service" style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>Terms</Link>
+          <Link href="/privacy-policy" style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>Privacy</Link>
+        </>
+      )}
     </footer>
   );
 }

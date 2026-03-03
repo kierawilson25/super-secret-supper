@@ -47,15 +47,6 @@ const divider: React.CSSProperties = {
   margin: '8px 0 16px',
 };
 
-const tocLinkStyle: React.CSSProperties = {
-  color: 'rgba(248,244,240,0.7)',
-  fontFamily: 'Inter, sans-serif',
-  fontSize: '0.875rem',
-  textDecoration: 'none',
-  display: 'block',
-  padding: '3px 0',
-};
-
 const linkStyle: React.CSSProperties = {
   color: '#FBE6A6',
   textDecoration: 'underline',
@@ -83,20 +74,6 @@ const tdStyle: React.CSSProperties = {
   lineHeight: 1.6,
 };
 
-const SECTIONS = [
-  'Information We Collect',
-  'How We Use Your Information',
-  'How We Share Your Information',
-  'Data Linked to You',
-  'Data Security',
-  'Data Retention',
-  'Your Rights',
-  'Account Deletion',
-  "Children's Privacy",
-  'Tracking and Advertising',
-  'Changes to This Policy',
-  'Contact Us',
-];
 
 export default function PrivacyPolicyPage() {
   return (
@@ -122,27 +99,6 @@ export default function PrivacyPolicyPage() {
             this policy.
           </p>
 
-          {/* Table of Contents */}
-          <nav aria-label="Table of contents" style={{ marginBottom: '40px' }}>
-            <p style={{ ...body, color: '#FBE6A6', fontWeight: 700, marginBottom: '10px', fontSize: '0.875rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Contents
-            </p>
-            <ol style={{ paddingLeft: '20px', margin: 0 }}>
-              {SECTIONS.map((title, i) => (
-                <li key={i} style={{ marginBottom: '2px' }}>
-                  <a
-                    href={`#section-${i + 1}`}
-                    style={tocLinkStyle}
-                    className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FBE6A6]"
-                  >
-                    {title}
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
-
-          <div style={divider} />
 
           {/* 1 */}
           <h2 id="section-1" style={sectionHeading}>1. Information We Collect</h2>
@@ -388,20 +344,8 @@ export default function PrivacyPolicyPage() {
           {/* Bottom nav */}
           <div style={{ ...divider, marginTop: '48px' }} />
           <nav aria-label="Legal pages" style={{ display: 'flex', gap: '24px', justifyContent: 'center', padding: '20px 0 8px', flexWrap: 'wrap' }}>
-            <a
-              href="/"
-              style={{ ...tocLinkStyle, color: 'rgba(248,244,240,0.55)' }}
-              className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FBE6A6]"
-            >
-              ← Home
-            </a>
-            <a
-              href="/terms-of-service"
-              style={{ ...tocLinkStyle, color: 'rgba(248,244,240,0.55)' }}
-              className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FBE6A6]"
-            >
-              Terms of Service
-            </a>
+            <a href="/" style={{ ...linkStyle, color: 'rgba(248,244,240,0.55)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', textDecoration: 'none' }} className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FBE6A6]">← Home</a>
+            <a href="/terms-of-service" style={{ ...linkStyle, color: 'rgba(248,244,240,0.55)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', textDecoration: 'none' }} className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FBE6A6]">Terms of Service</a>
           </nav>
 
           <p style={{ ...body, textAlign: 'center', color: 'rgba(248,244,240,0.35)', marginTop: '8px', fontSize: '0.8rem' }}>
