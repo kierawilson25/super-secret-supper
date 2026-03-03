@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
-const linkStyle = { color: '#F8F4F0', textDecoration: 'none' } as const;
+const linkStyle = { color: '#F8F4F0' } as const;
 
 export function Footer() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
