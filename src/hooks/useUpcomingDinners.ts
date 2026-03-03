@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { computeEarliestOverlap } from './useAvailabilityMatch';
 
 export interface UpcomingDinner {
   inviteId: string;
@@ -174,20 +175,33 @@ export function useUpcomingDinners(refreshKey?: number) {
 
               // Check availability — event-scoped first, fall back to general for backward compat
               const dinnerEventId = invite.dinner_event_id as string;
-              const hasSlots = async (userId: string): Promise<boolean> => {
+              const fetchSlots = async (userId: string) => {
                 const { data: ev } = await supabase
-                  .from('availability_slots').select('id')
-                  .eq('user_id', userId).eq('dinner_event_id', dinnerEventId).limit(1);
-                if ((ev?.length ?? 0) > 0) return true;
+                  .from('availability_slots').select('available_date, time_slot')
+                  .eq('user_id', userId).eq('dinner_event_id', dinnerEventId);
+                if (ev && ev.length > 0) return ev;
                 const { data: gen } = await supabase
-                  .from('availability_slots').select('id')
-                  .eq('user_id', userId).is('dinner_event_id', null).limit(1);
-                return (gen?.length ?? 0) > 0;
+                  .from('availability_slots').select('available_date, time_slot')
+                  .eq('user_id', userId).is('dinner_event_id', null);
+                return gen ?? [];
               };
 
-              userHasSetAvailability = await hasSlots(user.id);
+              const mySlots = await fetchSlots(user.id);
+              userHasSetAvailability = mySlots.length > 0;
+              let partnerSlots: { available_date: string; time_slot: string }[] = [];
               if (partner) {
-                partnerHasSetAvailability = await hasSlots(partner.userid);
+                partnerSlots = await fetchSlots(partner.userid);
+                partnerHasSetAvailability = partnerSlots.length > 0;
+              }
+
+              // If no confirmed_date from DB, compute overlap in memory for backward compat
+              // (handles availability saved before saveAvailability auto-confirm was added)
+              if (!confirmedDate && mySlots.length > 0 && partnerSlots.length > 0) {
+                const earliest = computeEarliestOverlap(mySlots, partnerSlots);
+                if (earliest) {
+                  confirmedDate = `${earliest.date}T00:00:00`;
+                  confirmedSlot = earliest.slot;
+                }
               }
             }
 
