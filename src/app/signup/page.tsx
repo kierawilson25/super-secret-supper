@@ -125,7 +125,7 @@ function SignupForm() {
   return (
     <PageContainer>
       <ContentContainer className="pt-20">
-        <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: '1.6rem', color: '#FBE6A6', display: 'block', textAlign: 'center', marginBottom: '4px', opacity: 0.7 }}>
+        <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: '1.6rem', color: '#FBE6A6', display: 'block', textAlign: 'center', marginTop: '40px', marginBottom: '4px', opacity: 0.7 }}>
           Circls
         </span>
         <PageHeader>Create Account</PageHeader>
@@ -147,7 +147,7 @@ function SignupForm() {
             required
           />
           {errors.email && (
-            <p className="text-red-400 text-sm mt-1 -mt-4">{errors.email}</p>
+            <p style={{ color: '#fca5a5', fontSize: '0.875rem', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.email}</p>
           )}
 
           <Input
@@ -163,7 +163,7 @@ function SignupForm() {
             required
           />
           {errors.username && (
-            <p className="text-red-400 text-sm mt-1 -mt-4">{errors.username}</p>
+            <p style={{ color: '#fca5a5', fontSize: '0.875rem', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.username}</p>
           )}
 
           <Input
@@ -179,7 +179,7 @@ function SignupForm() {
             required
           />
           {errors.password && (
-            <p className="text-red-400 text-sm mt-1 -mt-4">{errors.password}</p>
+            <p style={{ color: '#fca5a5', fontSize: '0.875rem', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.password}</p>
           )}
 
           <Input
@@ -195,7 +195,7 @@ function SignupForm() {
             required
           />
           {errors.confirmPassword && (
-            <p className="text-red-400 text-sm mt-1 -mt-4">{errors.confirmPassword}</p>
+            <p style={{ color: '#fca5a5', fontSize: '0.875rem', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.confirmPassword}</p>
           )}
 
           {message && (
@@ -211,12 +211,18 @@ function SignupForm() {
               {loading ? 'Creating Account...' : 'Sign Up'}
             </Button>
 
-            <p className="text-center text-sm text-[#F8F4F0]">
-              Already have an account?{' '}
-              <Link href="/login" className="text-[#FBE6A6] hover:underline focus:outline-none focus:ring-2 focus:ring-[#FBE6A6] focus:ring-offset-2 focus:ring-offset-[#460C58] rounded px-1">
+            <div style={{ textAlign: 'center', marginTop: '8px' }}>
+              <span style={{ fontSize: '0.9375rem', color: '#F8F4F0', opacity: 0.85, fontFamily: 'Inter, sans-serif' }}>
+                Already have an account?{' '}
+              </span>
+              <Link
+                href="/login"
+                className="hover:underline focus:outline-none focus:ring-2 focus:ring-[#FBE6A6] focus:ring-offset-2 focus:ring-offset-[#460C58] rounded px-1"
+                style={{ fontSize: '0.9375rem', color: '#FBE6A6', fontFamily: 'Inter, sans-serif' }}
+              >
                 Login
               </Link>
-            </p>
+            </div>
           </div>
         </form>
       </ContentContainer>
