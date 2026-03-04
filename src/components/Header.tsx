@@ -166,7 +166,7 @@ export default function Header() {
 
       <div className="header-content">
         <button onClick={() => router.push('/profile')} className="logo">
-          SSS
+          Circls
         </button>
 
         {user && (

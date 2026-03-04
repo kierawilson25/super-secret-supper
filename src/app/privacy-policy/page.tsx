@@ -5,7 +5,7 @@ import { PageContainer, ContentContainer, Footer, PageHeader } from '@/component
 const EFFECTIVE_DATE = 'March 3, 2026';
 const COMPANY = 'Full Circle Dining LLC';
 const CONTACT_EMAIL = 'kiera.wilson025@gmail.com';
-const APP_NAME = 'Circles';
+const APP_NAME = 'Circls';
 
 const sectionHeading: React.CSSProperties = {
   color: '#FBE6A6',
@@ -106,7 +106,7 @@ export default function PrivacyPolicyPage() {
 
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginBottom: '16px' }} role="region" aria-label="Data collection table, scroll to see all columns">
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px' }} aria-label="Types of personal data collected">
-              <caption style={{ display: 'none' }}>Types of personal data collected by Circles</caption>
+              <caption style={{ display: 'none' }}>Types of personal data collected by Circls</caption>
               <thead>
                 <tr>
                   <th style={thStyle}>Category</th>

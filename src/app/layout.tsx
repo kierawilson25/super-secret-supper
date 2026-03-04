@@ -5,7 +5,7 @@ import { Header, ErrorBoundary } from '@/components';
 // Fonts imported via Google Fonts in globals.css
 
 export const metadata: Metadata = {
-  title: 'Super Secret Supper',
+  title: 'Circls',
   description: 'Pairing you with someone new for an unforgettable dinner',
 };
 

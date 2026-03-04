@@ -106,7 +106,7 @@ function NavBar() {
         lineHeight: 1,
         userSelect: 'none',
       }}>
-        Super Secret Supper
+        Circls
       </span>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <Link
@@ -138,7 +138,7 @@ function HeroSection() {
           One dinner. One friend. Every month.
         </h1>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.05rem', color: offwhite, lineHeight: 1.75, maxWidth: '460px', margin: '0 auto 40px', opacity: 0.9 }}>
-          Super Secret Supper pairs you with a different member of your friend group each month for a private one-on-one dinner. No awkward group scheduling. Just you, one friend, and a real conversation.
+          Circls pairs you with a different member of your friend group each month for a private one-on-one dinner. No awkward group scheduling. Just you, one friend, and a real conversation.
         </p>
         <CtaButton href="/signup">Create an Account →</CtaButton>
         <div style={{ marginTop: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }} aria-hidden="true">
@@ -212,14 +212,14 @@ function WhyItMattersSection() {
           Most of us have a friend group — but how many people in that group do you actually know well? Group dinners are loud. Group chats are noise. Real connection happens one-on-one, but nobody ever makes it happen.
         </p>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', lineHeight: 1.8, color: 'rgba(248,244,240,0.8)', margin: '0 0 40px' }}>
-          Super Secret Supper is the nudge your friendships need. One dinner. One friend. Every month. Over time, you&apos;ll actually know everyone in the circle — not just their face, but their story.
+          Circls is the nudge your friendships need. One dinner. One friend. Every month. Over time, you&apos;ll actually know everyone in the circle — not just their face, but their story.
         </p>
         <blockquote style={{ border: `2px solid ${gold}`, borderRadius: '12px', padding: '28px', margin: 0 }}>
           <p style={{ fontFamily: 'Great Vibes, cursive', fontSize: '1.65rem', color: gold, lineHeight: 1.5, margin: '0 0 12px', fontWeight: 400 }}>
             &ldquo;The magic isn&apos;t in the app. It&apos;s in what happens when two people finally sit down together.&rdquo;
           </p>
           <footer style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: 'rgba(251,230,166,0.6)' }}>
-            — The Circles Team
+            — The Circls Team
           </footer>
         </blockquote>
       </div>
@@ -230,7 +230,7 @@ function WhyItMattersSection() {
 // ─── Social Proof ───────────────────────────────────────────────────────────
 const testimonials = [
   {
-    quote: "I've known these people for eight years. After three months of Secret Supper dinners, I felt like I was meeting half of them for the first time.",
+    quote: "I've known these people for eight years. After three months of Circls dinners, I felt like I was meeting half of them for the first time.",
     attribution: '— Alex, member since beta',
   },
   {
@@ -261,7 +261,7 @@ function SocialProofSection() {
           ))}
         </div>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', lineHeight: 1.7, color: 'rgba(248,244,240,0.5)', margin: 0 }}>
-          We built this because we needed it ourselves. Super Secret Supper is a small-team project rooted in the belief that structured serendipity is one of the best things you can do for your relationships.
+          We built this because we needed it ourselves. Circls is a small-team project rooted in the belief that structured serendipity is one of the best things you can do for your relationships.
         </p>
       </div>
     </section>
