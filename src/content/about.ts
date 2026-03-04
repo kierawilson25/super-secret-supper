@@ -1,6 +1,6 @@
 export const aboutContent = {
-  title: 'About Super Secret Supper',
-  intro: 'Super Secret Supper pairs everyone in your friend group for monthly one-on-one dinners, and keeps each match completely secret. Only you and your partner know who you\'re meeting… until the stories come out later.',
+  title: 'About Circls',
+  intro: 'Circls pairs everyone in your friend group for monthly one-on-one dinners, and keeps each match completely secret. Only you and your partner know who you\'re meeting… until the stories come out later.',
   sections: [
     {
       title: 'Why Secret Dinners?',

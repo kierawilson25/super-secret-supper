@@ -13,7 +13,7 @@ const purple = '#460C58';
 const hoverGold = '#CFA94A';
 
 // ─── Shared layout ──────────────────────────────────────────────────────────
-const section: React.CSSProperties = { width: '100%', padding: '80px 24px' };
+const section: React.CSSProperties = { width: '100%', padding: '56px 24px' };
 const col: React.CSSProperties = { maxWidth: '560px', margin: '0 auto' };
 
 // ─── Reusable CTA button ────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ function NavBar() {
         lineHeight: 1,
         userSelect: 'none',
       }}>
-        Super Secret Supper
+        Circls
       </span>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <Link
@@ -126,22 +126,22 @@ function NavBar() {
 // ─── Hero ───────────────────────────────────────────────────────────────────
 function HeroSection() {
   return (
-    <section id="hero" aria-labelledby="hero-heading" style={{ ...section, paddingTop: '100px', paddingBottom: '48px', textAlign: 'center' }}>
+    <section id="hero" aria-labelledby="hero-heading" style={{ ...section, paddingTop: '80px', paddingBottom: '40px', textAlign: 'center' }}>
       <div style={{ ...col, maxWidth: '520px' }}>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(251,230,166,0.6)', marginBottom: '24px', marginTop: 0 }} aria-hidden="true">
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(251,230,166,0.6)', marginBottom: '16px', marginTop: 0 }} aria-hidden="true">
           ✦&nbsp; Dinner &nbsp;·&nbsp; Friendship &nbsp;·&nbsp; Discovery &nbsp;·&nbsp; ✦
         </p>
         <h1
           id="hero-heading"
-          style={{ fontFamily: 'Great Vibes, cursive', fontSize: 'clamp(3rem, 9vw, 5rem)', color: gold, lineHeight: 1.1, marginTop: 0, marginBottom: '28px' }}
+          style={{ fontFamily: 'Great Vibes, cursive', fontSize: 'clamp(3rem, 9vw, 5rem)', color: gold, lineHeight: 1.1, marginTop: 0, marginBottom: '20px' }}
         >
           One dinner. One friend. Every month.
         </h1>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.05rem', color: offwhite, lineHeight: 1.75, maxWidth: '460px', margin: '0 auto 40px', opacity: 0.9 }}>
-          Super Secret Supper pairs you with a different member of your friend group each month for a private one-on-one dinner. No awkward group scheduling. Just you, one friend, and a real conversation.
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.05rem', color: offwhite, lineHeight: 1.75, maxWidth: '460px', margin: '0 auto 32px', opacity: 0.9 }}>
+          Circls pairs you with a different member of your friend group each month for a private one-on-one dinner. No awkward group scheduling. Just you, one friend, and a real conversation.
         </p>
         <CtaButton href="/signup">Create an Account →</CtaButton>
-        <div style={{ marginTop: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }} aria-hidden="true">
+        <div style={{ marginTop: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }} aria-hidden="true">
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(251,230,166,0.4)' }}>
             scroll
           </span>
@@ -177,11 +177,11 @@ function HowItWorksSection() {
   return (
     <section id="how-it-works" aria-labelledby="how-heading" style={{ ...section, backgroundColor: 'rgba(255,255,255,0.025)' }}>
       <div style={col}>
-        <h2 id="how-heading" style={{ fontFamily: 'Great Vibes, cursive', fontSize: 'clamp(2rem, 6vw, 2.8rem)', color: gold, textAlign: 'center', marginTop: 0, marginBottom: '48px', fontWeight: 400 }}>
+        <h2 id="how-heading" style={{ fontFamily: 'Great Vibes, cursive', fontSize: 'clamp(2rem, 6vw, 2.8rem)', color: gold, textAlign: 'center', marginTop: 0, marginBottom: '28px', fontWeight: 400 }}>
           How it works
         </h2>
         {steps.map((step) => (
-          <div key={step.num} style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', border: `2px solid ${gold}`, borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
+          <div key={step.num} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', border: `2px solid ${gold}`, borderRadius: '12px', padding: '18px 20px', marginBottom: '12px' }}>
             <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: '2rem', color: gold, opacity: 0.45, flexShrink: 0, lineHeight: 1, minWidth: '40px' }}>
               {step.num}
             </span>
@@ -205,21 +205,21 @@ function WhyItMattersSection() {
   return (
     <section id="why-it-matters" aria-labelledby="why-heading" style={{ ...section, textAlign: 'center' }}>
       <div style={col}>
-        <h2 id="why-heading" style={{ fontFamily: 'Great Vibes, cursive', fontSize: 'clamp(2rem, 6vw, 2.8rem)', color: gold, marginTop: 0, marginBottom: '32px', fontWeight: 400 }}>
+        <h2 id="why-heading" style={{ fontFamily: 'Great Vibes, cursive', fontSize: 'clamp(2rem, 6vw, 2.8rem)', color: gold, marginTop: 0, marginBottom: '20px', fontWeight: 400 }}>
           Friendship takes intention.
         </h2>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', lineHeight: 1.8, color: offwhite, margin: '0 0 20px' }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', lineHeight: 1.8, color: offwhite, margin: '0 0 14px' }}>
           Most of us have a friend group — but how many people in that group do you actually know well? Group dinners are loud. Group chats are noise. Real connection happens one-on-one, but nobody ever makes it happen.
         </p>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', lineHeight: 1.8, color: 'rgba(248,244,240,0.8)', margin: '0 0 40px' }}>
-          Super Secret Supper is the nudge your friendships need. One dinner. One friend. Every month. Over time, you&apos;ll actually know everyone in the circle — not just their face, but their story.
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', lineHeight: 1.8, color: 'rgba(248,244,240,0.8)', margin: '0 0 24px' }}>
+          Circls is the nudge your friendships need. One dinner. One friend. Every month. Over time, you&apos;ll actually know everyone in the circle — not just their face, but their story.
         </p>
-        <blockquote style={{ border: `2px solid ${gold}`, borderRadius: '12px', padding: '28px', margin: 0 }}>
-          <p style={{ fontFamily: 'Great Vibes, cursive', fontSize: '1.65rem', color: gold, lineHeight: 1.5, margin: '0 0 12px', fontWeight: 400 }}>
+        <blockquote style={{ border: `2px solid ${gold}`, borderRadius: '12px', padding: '20px 24px', margin: 0 }}>
+          <p style={{ fontFamily: 'Great Vibes, cursive', fontSize: '1.65rem', color: gold, lineHeight: 1.5, margin: '0 0 8px', fontWeight: 400 }}>
             &ldquo;The magic isn&apos;t in the app. It&apos;s in what happens when two people finally sit down together.&rdquo;
           </p>
           <footer style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: 'rgba(251,230,166,0.6)' }}>
-            — The Circles Team
+            — The Circls Team
           </footer>
         </blockquote>
       </div>
@@ -230,7 +230,7 @@ function WhyItMattersSection() {
 // ─── Social Proof ───────────────────────────────────────────────────────────
 const testimonials = [
   {
-    quote: "I've known these people for eight years. After three months of Secret Supper dinners, I felt like I was meeting half of them for the first time.",
+    quote: "I've known these people for eight years. After three months of Circls dinners, I felt like I was meeting half of them for the first time.",
     attribution: '— Alex, member since beta',
   },
   {
@@ -243,10 +243,10 @@ function SocialProofSection() {
   return (
     <section id="social-proof" aria-labelledby="proof-heading" style={{ ...section, backgroundColor: 'rgba(255,255,255,0.025)', textAlign: 'center' }}>
       <div style={col}>
-        <h2 id="proof-heading" style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.15rem', fontWeight: 600, color: offwhite, marginTop: 0, marginBottom: '32px', letterSpacing: '0.01em' }}>
+        <h2 id="proof-heading" style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.15rem', fontWeight: 600, color: offwhite, marginTop: 0, marginBottom: '20px', letterSpacing: '0.01em' }}>
           Built for real friend groups
         </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
           {testimonials.map((t, i) => (
             <figure key={i} style={{ border: '1px solid rgba(251,230,166,0.3)', borderRadius: '8px', padding: '20px', margin: 0, textAlign: 'left' }}>
               <blockquote style={{ margin: '0 0 10px' }}>
@@ -261,7 +261,7 @@ function SocialProofSection() {
           ))}
         </div>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', lineHeight: 1.7, color: 'rgba(248,244,240,0.5)', margin: 0 }}>
-          We built this because we needed it ourselves. Super Secret Supper is a small-team project rooted in the belief that structured serendipity is one of the best things you can do for your relationships.
+          We built this because we needed it ourselves. Circls is a small-team project rooted in the belief that structured serendipity is one of the best things you can do for your relationships.
         </p>
       </div>
     </section>
@@ -271,12 +271,12 @@ function SocialProofSection() {
 // ─── Final CTA ──────────────────────────────────────────────────────────────
 function FinalCtaSection() {
   return (
-    <section id="join" aria-labelledby="join-heading" style={{ ...section, backgroundColor: 'rgba(251,230,166,0.045)', textAlign: 'center', paddingBottom: '120px' }}>
+    <section id="join" aria-labelledby="join-heading" style={{ ...section, backgroundColor: 'rgba(251,230,166,0.045)', textAlign: 'center', paddingBottom: '96px' }}>
       <div style={{ ...col, maxWidth: '440px' }}>
-        <h2 id="join-heading" style={{ fontFamily: 'Great Vibes, cursive', fontSize: 'clamp(2rem, 6vw, 2.8rem)', color: gold, marginTop: 0, marginBottom: '20px', fontWeight: 400, lineHeight: 1.2 }}>
+        <h2 id="join-heading" style={{ fontFamily: 'Great Vibes, cursive', fontSize: 'clamp(2rem, 6vw, 2.8rem)', color: gold, marginTop: 0, marginBottom: '16px', fontWeight: 400, lineHeight: 1.2 }}>
           Ready to actually know your people?
         </h2>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', color: 'rgba(248,244,240,0.8)', margin: '0 0 36px', lineHeight: 1.7 }}>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', color: 'rgba(248,244,240,0.8)', margin: '0 0 24px', lineHeight: 1.7 }}>
           Create your account and start your first circle today.
         </p>
         <CtaButton href="/signup">Create Your Account →</CtaButton>

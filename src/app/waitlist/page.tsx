@@ -39,7 +39,7 @@ export default function WaitlistPage() {
             shhhh...
           </h1>
           <h2 className="text-2xl font-bold text-[#FBE6A6]">
-            Super Secret Supper
+            Circls
           </h2>
           <p className="text-2xl md:text-4xl text-[#FBE6A6] mb-6">
             Join the Beta waitlist
@@ -50,7 +50,7 @@ export default function WaitlistPage() {
 
 
           <p className="text-[#F8F4F0] max-w-md">
-            Super Secret Supper helps you turn group friends into real friends through monthly dinner pairings.
+            Circls helps you turn group friends into real friends through monthly dinner pairings.
             We handle the logistics, you enjoy the conversations.
           </p>
 

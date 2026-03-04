@@ -127,7 +127,7 @@ function SignupForm() {
       <ContentContainer className="pt-20">
         <PageHeader>Create Account</PageHeader>
         <p className="text-[#F8F4F0] text-center text-base mb-8">
-          Join Super Secret Supper and start making meaningful connections
+          Join Circls and start making meaningful connections
         </p>
 
         <form onSubmit={handleSignUp} className="w-full space-y-6">

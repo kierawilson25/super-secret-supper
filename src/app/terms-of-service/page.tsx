@@ -5,7 +5,7 @@ import { PageContainer, ContentContainer, Footer, PageHeader } from '@/component
 const EFFECTIVE_DATE = 'March 3, 2026';
 const COMPANY = 'Full Circle Dining LLC';
 const CONTACT_EMAIL = 'kiera.wilson025@gmail.com';
-const APP_NAME = 'Circles';
+const APP_NAME = 'Circls';
 
 const sectionHeading: React.CSSProperties = {
   color: '#FBE6A6',
