@@ -160,7 +160,7 @@ function GroupsSummarySection({ groups, loading }: { groups: Group[]; loading: b
       ) : groups.length === 0 ? (
         <div style={S.emptyCard}>
           <p style={S.emptyHeading}>No groups yet</p>
-          <p style={S.emptyBody}>Create a dinner group with friends, or join one with an invite code. Your next secret supper is one step away.</p>
+          <p style={S.emptyBody}>Create a dinner group with friends, or join one with an invite code. Your next Circls dinner is one step away.</p>
           <Link href="/create-group" style={S.emptyCta} {...focusHandlers}>Start a group</Link>
         </div>
       ) : (

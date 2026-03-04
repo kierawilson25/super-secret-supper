@@ -60,7 +60,7 @@ function LoginForm() {
         <ContentContainer className="pt-20">
           <PageHeader>Welcome Back</PageHeader>
           <p className="text-[#F8F4F0] text-center text-base mb-8">
-            Login to continue to Super Secret Supper
+            Login to continue to Circls
           </p>
 
           <form className="w-full space-y-6" onSubmit={handleLogin}>
