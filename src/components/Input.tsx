@@ -6,16 +6,34 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export function Input({ label, className = '', ...props }: InputProps) {
   return (
-    <div className="w-full mb-4">
-      {label && (
-        <label className="block text-[#FBE6A6] font-inter font-600 mb-4 px-5 md:px-0" style={{ fontSize: '1.2rem', paddingTop: '5px', paddingLeft: '5px' }}>
-          {label}
-        </label>
-      )}
-      <div className="px-5 md:px-0 flex justify-center">
+    <div style={{ width: '100%', marginBottom: '20px' }}>
+      <div style={{ maxWidth: '400px', margin: '0 auto', width: '100%' }}>
+        {label && (
+          <label style={{
+            display: 'block',
+            color: '#FBE6A6',
+            fontSize: '0.9375rem',
+            marginBottom: '6px',
+            fontWeight: 600,
+            fontFamily: 'Inter, sans-serif',
+          }}>
+            {label}
+          </label>
+        )}
         <input
-          className={`w-full md:w-2/3 text-[1.2rem] px-6 bg-white border-[3px] border-[#FBE6A6] text-gray-800 text-base placeholder-gray focus:outline-none focus:ring-2 focus:ring-[#CFA94A] focus:border-[#CFA94A] transition-all shadow-sm ${className}`}
-          style={{ height: '48px', borderRadius: '8px', caretColor: '#460C58' }}
+          className={`w-full border-[3px] border-[#FBE6A6] focus:outline-none focus:ring-2 focus:ring-[#CFA94A] focus:border-[#CFA94A] transition-all ${className}`}
+          style={{
+            height: '52px',
+            borderRadius: '10px',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            color: '#F8F4F0',
+            caretColor: '#FBE6A6',
+            fontSize: '1rem',
+            paddingLeft: '16px',
+            paddingRight: '16px',
+            width: '100%',
+            display: 'block',
+          }}
           {...props}
         />
       </div>

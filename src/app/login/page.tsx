@@ -58,8 +58,11 @@ function LoginForm() {
   return (
     <PageContainer>
         <ContentContainer className="pt-20">
+          <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: '1.6rem', color: '#FBE6A6', display: 'block', textAlign: 'center', marginTop: '40px', marginBottom: '4px', opacity: 0.7 }}>
+            Circls
+          </span>
           <PageHeader>Welcome Back</PageHeader>
-          <p className="text-[#F8F4F0] text-center text-base mb-8">
+          <p style={{ color: '#F8F4F0', textAlign: 'center', fontSize: '1rem', margin: '0 0 32px 0', opacity: 0.85, lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}>
             Login to continue to Circls
           </p>
 
@@ -133,15 +136,18 @@ function LoginForm() {
               {loading ? 'Logging in...' : 'Login'}
             </Button>
 
-            <p className="text-center text-sm text-[#F8F4F0]">
-              Don't have an account?{' '}
+            <div style={{ textAlign: 'center', marginTop: '8px' }}>
+              <span style={{ fontSize: '0.9375rem', color: '#F8F4F0', opacity: 0.85, fontFamily: 'Inter, sans-serif' }}>
+                Don't have an account?{' '}
+              </span>
               <Link
                 href="/signup"
-                className="text-[#FBE6A6] hover:underline focus:outline-none focus:ring-2 focus:ring-[#FBE6A6] focus:ring-offset-2 focus:ring-offset-[#460C58] rounded px-1"
+                className="hover:underline focus:outline-none focus:ring-2 focus:ring-[#FBE6A6] focus:ring-offset-2 focus:ring-offset-[#460C58] rounded px-1"
+                style={{ fontSize: '0.9375rem', color: '#FBE6A6', fontFamily: 'Inter, sans-serif' }}
               >
                 Sign up
               </Link>
-            </p>
+            </div>
           </div>
         </form>
       </ContentContainer>

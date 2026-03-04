@@ -56,6 +56,11 @@ input, select, textarea {
   font-family: 'Inter', sans-serif;
 }
 
+/* Placeholder color for dark-background inputs */
+input::placeholder {
+  color: rgba(248, 244, 240, 0.45);
+}
+
 /* Ensure placeholder text in disabled inputs matches the locked field color,
    overriding the browser's default grey for disabled ::placeholder. */
 input:disabled::placeholder {
