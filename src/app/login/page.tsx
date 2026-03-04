@@ -58,8 +58,11 @@ function LoginForm() {
   return (
     <PageContainer>
         <ContentContainer className="pt-20">
+          <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: '1.6rem', color: '#FBE6A6', display: 'block', textAlign: 'center', marginBottom: '4px', opacity: 0.7 }}>
+            Circls
+          </span>
           <PageHeader>Welcome Back</PageHeader>
-          <p className="text-[#F8F4F0] text-center text-base mb-8">
+          <p style={{ color: '#F8F4F0', textAlign: 'center', fontSize: '1rem', margin: '0 0 32px 0', opacity: 0.85, lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}>
             Login to continue to Circls
           </p>
 

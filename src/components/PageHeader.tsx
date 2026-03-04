@@ -21,7 +21,8 @@ export function PageHeader({
 
   return (
     <h1
-      className="font-greatvibes text-[5rem] text-[#FBE6A6] text-center px-2 pt-10"
+      className="font-greatvibes text-[#FBE6A6] text-center px-2 pt-10"
+      style={{ fontSize: 'clamp(2.8rem, 10vw, 4.5rem)', marginTop: 0, marginBottom: '8px' }}
     >
       {children}
     </h1>
