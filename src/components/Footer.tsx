@@ -30,7 +30,7 @@ export function Footer() {
       backgroundColor: '#460C58',
     }}>
       <Link href="/about" style={linkStyle} className="footer-link">About</Link>
-      <Link href="/" style={linkStyle} className="footer-link">Contact</Link>
+      <Link href="/support" style={linkStyle} className="footer-link">Support</Link>
       {isAuthenticated === false && (
         <>
           <Link href="/terms-of-service" style={linkStyle} className="footer-link">Terms</Link>
